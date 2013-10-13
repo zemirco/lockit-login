@@ -1,5 +1,7 @@
 # login middleware for lockit
 
+[![Build Status](https://travis-ci.org/zeMirco/lockit-login.png?branch=master)](https://travis-ci.org/zeMirco/lockit-login)
+
 work in progress - come back later
 
 ## Installation
