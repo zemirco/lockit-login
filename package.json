@@ -1,0 +1,38 @@
+{
+  "name": "lockit-login",
+  "version": "0.0.1",
+  "description": "login and logout module for lockit",
+  "main": "index.js",
+  "scripts": {
+    "test": "grunt"
+  },
+  "author": {
+    "name": "Mirco Zeiss",
+    "email": "mirco.zeiss@gmail.com",
+    "twitter": "zeMirco"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zeMirco/lockit-login"
+  },
+  "keywords": [
+    "lockit",
+    "login",
+    "logout"
+  ],
+  "dependencies": {
+    "bcrypt": "~0.7.7"
+  },
+  "devDependencies": {
+    "supertest": "~0.7.1",
+    "should": "~2.0.1",
+    "grunt": "~0.4.1",
+    "grunt-contrib-jshint": "~0.6.4",
+    "grunt-mocha-test": "~0.7.0",
+    "lockit-couchdb-adapter": "0.0.2",
+    "express": "3.3.5",
+    "jade": "*",
+    "superagent": "~0.15.5"
+  }
+}
