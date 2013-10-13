@@ -32,6 +32,7 @@
     "grunt-mocha-test": "~0.7.0",
     "lockit-couchdb-adapter": "0.0.2",
     "express": "3.3.5",
+    "nano": "~4.1.1",
     "jade": "*",
     "superagent": "~0.15.5"
   }
