@@ -1,8 +1,8 @@
-# login middleware for lockit
+# Lockit login
 
 [![Build Status](https://travis-ci.org/zeMirco/lockit-login.png?branch=master)](https://travis-ci.org/zeMirco/lockit-login)
 
-work in progress - come back later
+Log in users to your Express app. The module is part of [Lockit](https://github.com/zeMirco/lockit).
 
 ## Installation
 
@@ -29,7 +29,23 @@ login(app, config);
 app.use(express.static(path.join(__dirname, 'public')));
 ```
 
-## What do I get?
+## Configuration
+
+More about configuration at [Lockit](https://github.com/zeMirco/lockit).
+
+## Features
+
+ - track failed log in attempts
+ - track time and ip of log ins
+ - redirect unauthorized users to /login and save requested url to session
+ - input validation
+ - allow login with username and/or email
+
+## Routes included
+
+ - GET /login
+ - POST /login
+ - GET /logout
 
 ## Test
 
