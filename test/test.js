@@ -229,7 +229,7 @@ describe('lockit-login', function() {
 // remove user from db
 after(function(done) {
 
-  adapter.delete('username', 'john', function(err) {
+  adapter.remove('username', 'john', function(err) {
     if (err) console.log(err);
     done();
   });
