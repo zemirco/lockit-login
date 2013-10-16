@@ -1,6 +1,6 @@
 {
   "name": "lockit-login",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "login and logout module for lockit",
   "main": "index.js",
   "scripts": {
@@ -30,7 +30,7 @@
     "grunt": "~0.4.1",
     "grunt-contrib-jshint": "~0.6.4",
     "grunt-mocha-test": "~0.7.0",
-    "lockit-couchdb-adapter": "0.0.2",
+    "lockit-couchdb-adapter": "0.0.3",
     "express": "3.3.5",
     "nano": "~4.1.1",
     "jade": "*",
