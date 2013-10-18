@@ -56,22 +56,52 @@ module.exports = function(app, config) {
         return;
       }
 
+      // check for too many failed login attempts
+      if (user.accountLocked && new Date(user.accountLockedUntil) > new Date()) {
+        res.status(403);
+        res.render(path.join(__dirname, 'views', 'get-login'), {
+          title: 'Login',
+          error: 'The account is temporarily locked'
+        });
+        return;
+      }
+
       // compare hash with hash from db
       bcrypt.compare(password, user.hash, function(err, valid) {
         if (err) console.log(err);
         
         if (!valid) {
-          
+
+          // set the default error message
+          var errorMessage = 'Invalid user or password';
+
           // increase failed login attempts
           user.failedLoginAttempts += 1;
-          
+
+          // lock account on too many login attempts (defaults to 5)
+          if (user.failedLoginAttempts >= config.failedLoginAttempts) {
+            user.accountLocked = true;
+
+            // set locked time to 20 minutes (default value)
+            var current = new Date();
+            var twentyMinutes = current.setTime(current.getTime() + config.accountLockedTime);
+            user.accountLockedUntil = new Date(twentyMinutes);
+
+            errorMessage = 'Invalid user or password. Your account is now locked for 20 minutes.';
+          } else if (user.failedLoginAttempts >= config.failedLoginsWarning) {
+            // show a warning after 3 (default setting) failed login attempts
+            errorMessage = 'Invalid user or password. Your account will be locked soon.';
+          }
+
+          // save user to db
           adapter.update(user, function(err, user) {
             if (err) console.log(err);
 
+            // send error message
             res.status(403);
             res.render(path.join(__dirname, 'views', 'get-login'), {
               title: 'Login',
-              error: 'Invalid user or password'
+              error: errorMessage
             });
           });
 
@@ -94,6 +124,7 @@ module.exports = function(app, config) {
         
         // set failed login attempts to zero
         user.failedLoginAttempts = 0;
+        user.accountLocked = false;
         
         // save user to db
         adapter.update(user, function(err, user) {
