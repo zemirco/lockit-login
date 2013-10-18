@@ -20,6 +20,13 @@ exports.signupTokenExpiration = 24 * 60 * 60 * 1000;
 exports.forgotPasswordRoute = '/forgot-password';
 exports.forgotPasswordTokenExpiration = 24 * 60 * 60 * 1000;
 
+// lock account
+exports.failedLoginsWarning = 3;
+exports.failedLoginAttempts = 5;
+
+// set to 10 seconds for testing
+exports.accountLockedTime = 5000;
+
 // settings for test
 exports.db = 'couchdb';
 exports.dbUrl = 'http://127.0.0.1:5984/test';
