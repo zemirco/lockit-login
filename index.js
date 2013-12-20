@@ -1,37 +1,53 @@
 
 var path = require('path');
 var bcrypt = require('bcrypt');
+var ms = require('ms');
+var moment = require('moment');
+var debug = require('debug')('lockit-login');
+
+var utils = require('lockit-utils');
 
 module.exports = function(app, config) {
   
   // load additional modules
   var adapter = require('lockit-' + config.db + '-adapter')(config);
 
+  // set default routes
+  var loginRoute = config.loginRoute || '/login';
+  var logoutRoute = config.logoutRoute || '/logout';
+
   // GET /login
-  app.get('/login', function(req, res) {
+  app.get(loginRoute, function(req, res) {
+    debug('rendering GET %s', loginRoute);
+
+    // save redirect url in session
+    req.session.redirectUrlAfterLogin = req.query.redirect;
+        
+    // render view
     res.render(path.join(__dirname, 'views', 'get-login'), {
       title: 'Login'
     });
   });
   
   // POST /login
-  app.post('/login', function(req, res, next) {
-    
+  app.post(loginRoute, function(req, res) {
+    debug('POST request to %s: %j', loginRoute, req.body);
+
     // session might include a url which the user requested before login
     var target = req.session.redirectUrlAfterLogin || '/';
-
-    // reset the session
-    delete req.session.redirectUrlAfterLogin;
+    debug('redirect target is: %s', target);
     
     var login = req.body.login;
     var password = req.body.password;
 
     // check for valid inputs
     if (!login || !password) {
+      debug('invalid inputs');
       res.status(403);
       res.render(path.join(__dirname, 'views', 'get-login'), {
         title: 'Login',
-        error: 'Please enter your email/username and password'
+        error: 'Please enter your email/username and password',
+        login: login
       });
       return;
     }
@@ -48,20 +64,24 @@ module.exports = function(app, config) {
       
       // no user or user email isn't verified yet -> render error message
       if (!user || !user.emailVerified) {
+        debug('no user found');
         res.status(403);
         res.render(path.join(__dirname, 'views', 'get-login'), {
           title: 'Login',
-          error: 'Invalid user or password'
+          error: 'Invalid user or password',
+          login: login
         });
         return;
       }
 
       // check for too many failed login attempts
       if (user.accountLocked && new Date(user.accountLockedUntil) > new Date()) {
+        debug('too many failed login attempts');
         res.status(403);
         res.render(path.join(__dirname, 'views', 'get-login'), {
           title: 'Login',
-          error: 'The account is temporarily locked'
+          error: 'The account is temporarily locked',
+          login: login
         });
         return;
       }
@@ -71,7 +91,7 @@ module.exports = function(app, config) {
         if (err) console.log(err);
         
         if (!valid) {
-
+          debug('invalid password');
           // set the default error message
           var errorMessage = 'Invalid user or password';
 
@@ -83,11 +103,10 @@ module.exports = function(app, config) {
             user.accountLocked = true;
 
             // set locked time to 20 minutes (default value)
-            var current = new Date();
-            var twentyMinutes = current.setTime(current.getTime() + config.accountLockedTime);
-            user.accountLockedUntil = new Date(twentyMinutes);
+            var timespan = ms(config.accountLockedTime);
+            user.accountLockedUntil = moment().add(timespan, 'ms').toDate();
 
-            errorMessage = 'Invalid user or password. Your account is now locked for 20 minutes.';
+            errorMessage = 'Invalid user or password. Your account is now locked for ' + config.accountLockedTime;
           } else if (user.failedLoginAttempts >= config.failedLoginsWarning) {
             // show a warning after 3 (default setting) failed login attempts
             errorMessage = 'Invalid user or password. Your account will be locked soon.';
@@ -101,7 +120,8 @@ module.exports = function(app, config) {
             res.status(403);
             res.render(path.join(__dirname, 'views', 'get-login'), {
               title: 'Login',
-              error: errorMessage
+              error: errorMessage,
+              login: login
             });
           });
 
@@ -119,18 +139,23 @@ module.exports = function(app, config) {
         user.previousLoginIp = user.currentLoginIp || req.ip;
 
         // save login time
-        user.currentLoginTime = new Date();
+        user.currentLoginTime = now;
         user.currentLoginIp = req.ip;
         
-        // set failed login attempts to zero
+        // set failed login attempts to zero but save them in the session
+        req.session.failedLoginAttempts = user.failedLoginAttempts;
         user.failedLoginAttempts = 0;
         user.accountLocked = false;
         
         // save user to db
         adapter.update(user, function(err, user) {
+          debug('updated user: %j', user);
           if (err) console.log(err);
 
-          // create session and save the username
+          // reset the session
+          delete req.session.redirectUrlAfterLogin;
+
+          // create session and save the username and email address
           req.session.username = user.username;
           req.session.email = user.email;
           res.redirect(target);
@@ -143,10 +168,15 @@ module.exports = function(app, config) {
   });
   
   // GET /logout
-  app.get('/logout', function(req, res) {
+  app.get(logoutRoute, utils.restrict(config), function(req, res) {
+    debug('rendering GET %s', logoutRoute);
 
     // destroy the session
     req.session = null;
+    
+    // clear local variables - they were set before the session was destroyed
+    res.locals.username = null;
+    res.locals.email = null;
 
     // reder logout success template
     res.render(path.join(__dirname, 'views', 'get-logout'), {
