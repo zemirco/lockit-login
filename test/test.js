@@ -12,6 +12,8 @@ before(function(done) {
   // add a dummy user to db - email isn't verified yet
   adapter.save('john', 'john@email.com', 'password', function(err, user) {
     if (err) console.log(err);
+    
+    // add another dummy user and verify email
     adapter.save('steve', 'steve@email.com', 'password', function(err, user) {
       if (err) console.log(err);
 
@@ -36,6 +38,7 @@ before(function(done) {
 
 var agent = null;
 
+// simple wrapper for POSTing stuff again and again
 function postLogin(username, pass, cb) {
   request(app)
     .post('/login')
@@ -63,63 +66,48 @@ describe('lockit-login', function() {
   describe('POST /login', function() {
 
     it('should render an error message when login field is invalid', function(done) {
-      request(app)
-        .post('/login')
-        .send({login: '', password: 'secret'})
-        .end(function(error, res) {
-          res.statusCode.should.equal(403);
-          res.text.should.include('Please enter your email/username and password');
-          done();
-        });
+      postLogin('', 'secret', function(err, res) {
+        res.statusCode.should.equal(403);
+        res.text.should.include('Please enter your email/username and password');
+        done();
+      });
     });
 
     it('should render an error message when password field is empty', function(done) {
-      request(app)
-        .post('/login')
-        .send({login: 'john', password: ''})
-        .end(function(error, res) {
-          res.statusCode.should.equal(403);
-          res.text.should.include('Please enter your email/username and password');
-          done();
-        });
+      postLogin('john', '', function(err, res) {
+        res.statusCode.should.equal(403);
+        res.text.should.include('Please enter your email/username and password');
+        done();
+      });
     });
 
     it('should render an error message when email is not verified', function(done) {
-      request(app)
-        .post('/login')
-        .send({login: 'john', password: 'password'})
-        .end(function(error, res) {
-          res.statusCode.should.equal(403);
-          res.text.should.include('Invalid user or password');
-          done();
-        });
+      postLogin('john', 'password', function(err, res) {
+        res.statusCode.should.equal(403);
+        res.text.should.include('Invalid user or password');
+        done();
+      });
     });
 
     it('should render an error message when user is not in db', function(done) {
-      request(app)
-        .post('/login')
-        .send({login: 'jack', password: 'password'})
-        .end(function(error, res) {
-          res.statusCode.should.equal(403);
-          res.text.should.include('Invalid user or password');
-          done();
-        });
+      postLogin('jack', 'password', function(err, res) {
+        res.statusCode.should.equal(403);
+        res.text.should.include('Invalid user or password');
+        done();
+      });
     });
 
     it('should render an error message when password is false', function(done) {
-      request(app)
-        .post('/login')
-        .send({login: 'john', password: 'something'})
-        .end(function(error, res) {
-          res.statusCode.should.equal(403);
-          res.text.should.include('Invalid user or password');
-          done();
-        });
+      postLogin('john', 'something', function(err, res) {
+        res.statusCode.should.equal(403);
+        res.text.should.include('Invalid user or password');
+        done();
+      });
     });
 
     it('should show a warning message after three failed login attempts', function(done) {
 
-      // thre login attempts
+      // three login attempts
       postLogin('steve', 'wrong', function(err, res) {
         postLogin('steve', 'wrong', function(err, res) {
           postLogin('steve', 'wrong', function(err, res) {
@@ -138,7 +126,7 @@ describe('lockit-login', function() {
       postLogin('steve', 'wrong', function(err, res) {
         postLogin('steve', 'wrong', function(err, res) {
           res.statusCode.should.equal(403);
-          res.text.should.include('Invalid user or password. Your account is now locked for 20 minutes.');
+          res.text.should.include('Invalid user or password. Your account is now locked for ' + config.accountLockedTime);
           done();
         });
       });
@@ -179,15 +167,12 @@ describe('lockit-login', function() {
           if (err) console.log(err);
 
             // now make the request
-            request(app)
-              .post('/login')
-              .send({login: 'john', password: 'password'})
-              .end(function(error, res) {
-                // test for proper redirection
-                res.statusCode.should.equal(302);
-                res.header.location.should.include('/');
-                done();
-              });
+            postLogin('john', 'password', function(err, res) {
+              // test for proper redirection
+              res.statusCode.should.equal(302);
+              res.header.location.should.include('/');
+              done();
+            });
         });
 
       });
@@ -197,27 +182,21 @@ describe('lockit-login', function() {
     it('should allow login in with an email', function(done) {
 
       // we don't have to verify the email address as it is done by the test before
-      request(app)
-        .post('/login')
-        .send({login: 'john@email.com', password: 'password'})
-        .end(function(error, res) {
-          // test for proper redirection
-          res.statusCode.should.equal(302);
-          res.header.location.should.include('/');
-          done();
-        });
+      postLogin('john@email.com', 'password', function(err, res) {
+        // test for proper redirection
+        res.statusCode.should.equal(302);
+        res.header.location.should.include('/');
+        done();
+      });
     });
 
     it('should redirect to the main page when no redirect was necessary', function(done) {
-      request(app)
-        .post('/login')
-        .send({login: 'john', password: 'password'})
-        .end(function(error, res) {
-          // test for proper redirection
-          res.statusCode.should.equal(302);
-          res.header.location.should.include('/');
-          done();
-        });
+      postLogin('john', 'password', function(err, res) {
+        // test for proper redirection
+        res.statusCode.should.equal(302);
+        res.header.location.should.include('/');
+        done();
+      });
     });
 
     it('should redirect to the originally requested page', function(done) {
