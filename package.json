@@ -1,6 +1,6 @@
 {
   "name": "lockit-login",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "description": "login and logout module for lockit",
   "main": "index.js",
   "scripts": {
