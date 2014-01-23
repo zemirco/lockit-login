@@ -2,11 +2,25 @@
 var request = require('supertest');
 var should = require('should');
 var superagent = require('superagent');
+var utls = require('lockit-utils');
 
 var config = require('./config.js');
 var app = require('./app.js')(config);
 
-var adapter = require('lockit-' + config.db + '-adapter')(config);
+var db = utls.getDatabase(config);
+var adapter = require(db.adapter)(config);
+
+// create a second app for testing custom view
+var altConfig = JSON.parse(JSON.stringify(config));
+
+// set some custom properties
+altConfig.port = 4000;
+altConfig.login.views = {
+  login: 'custom/login',
+  loggedOut: 'custom/loggedOut'
+};
+
+var altApp = require('./app.js')(altConfig);
 
 before(function(done) {
   // add a dummy user to db - email isn't verified yet
@@ -57,6 +71,15 @@ describe('lockit-login', function() {
           res.statusCode.should.equal(200);
           res.text.should.include('Email or Username');
           res.text.should.include('<title>Login</title>');
+          done();
+        });
+    });
+
+    it('should use the custom template', function(done) {
+      request(altApp)
+        .get('/login')
+        .end(function(err, res) {
+          res.text.should.include('Join the community');
           done();
         });
     });
@@ -227,6 +250,16 @@ describe('lockit-login', function() {
 
     });
 
+    it('should work with custom views', function(done) {
+      request(altApp)
+        .post('/login')
+        .send({login: '', password: 'scret'})
+        .end(function(err, res) {
+          res.text.should.include('Join the community');
+          done();
+        });
+    });
+
   });
 
   describe('GET /logout', function() {
@@ -272,6 +305,27 @@ describe('lockit-login', function() {
           res.redirects.should.eql(['http://localhost:3000/login']);
           done();
         });
+    });
+
+    it('should work with custom views', function(done) {
+      
+        // login first
+        agent
+          .post('http://localhost:4000/login')
+          .send({login:'john', password:'password'})
+          .end(function(err, res) {
+
+              // then logout
+              agent
+                .get('http://localhost:4000/logout')
+                .end(function(err, res) {
+                  if (err) console.log(err);
+                  res.text.should.include('You did it!');
+                  done();
+                });
+              
+          });
+      
     });
 
   });
