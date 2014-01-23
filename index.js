@@ -3,18 +3,24 @@ var path = require('path');
 var bcrypt = require('bcrypt');
 var ms = require('ms');
 var moment = require('moment');
+var utls = require('lockit-utils');
 var debug = require('debug')('lockit-login');
 
 var utils = require('lockit-utils');
 
 module.exports = function(app, config) {
-  
+
+  var db = utls.getDatabase(config);
+
   // load additional modules
-  var adapter = require('lockit-' + config.db + '-adapter')(config);
+  var adapter = require(db.adapter)(config);
+  
+  // shorten config
+  var cfg = config.login;
 
   // set default routes
-  var loginRoute = config.loginRoute || '/login';
-  var logoutRoute = config.logoutRoute || '/logout';
+  var loginRoute = cfg.route || '/login';
+  var logoutRoute = cfg.logoutRoute || '/logout';
 
   // GET /login
   app.get(loginRoute, function(req, res) {
@@ -22,9 +28,12 @@ module.exports = function(app, config) {
 
     // save redirect url in session
     req.session.redirectUrlAfterLogin = req.query.redirect;
+
+    // custom or built-in view
+    var view = cfg.views.login || path.join(__dirname, 'views', 'get-login');
         
     // render view
-    res.render(path.join(__dirname, 'views', 'get-login'), {
+    res.render(view, {
       title: 'Login'
     });
   });
@@ -40,11 +49,14 @@ module.exports = function(app, config) {
     var login = req.body.login;
     var password = req.body.password;
 
+    // custom or built-in view
+    var view = cfg.views.login || path.join(__dirname, 'views', 'get-login');
+
     // check for valid inputs
     if (!login || !password) {
       debug('invalid inputs');
       res.status(403);
-      res.render(path.join(__dirname, 'views', 'get-login'), {
+      res.render(view, {
         title: 'Login',
         error: 'Please enter your email/username and password',
         login: login
@@ -66,7 +78,7 @@ module.exports = function(app, config) {
       if (!user || !user.emailVerified) {
         debug('no user found');
         res.status(403);
-        res.render(path.join(__dirname, 'views', 'get-login'), {
+        res.render(view, {
           title: 'Login',
           error: 'Invalid user or password',
           login: login
@@ -78,7 +90,7 @@ module.exports = function(app, config) {
       if (user.accountLocked && new Date(user.accountLockedUntil) > new Date()) {
         debug('too many failed login attempts');
         res.status(403);
-        res.render(path.join(__dirname, 'views', 'get-login'), {
+        res.render(view, {
           title: 'Login',
           error: 'The account is temporarily locked',
           login: login
@@ -118,7 +130,7 @@ module.exports = function(app, config) {
 
             // send error message
             res.status(403);
-            res.render(path.join(__dirname, 'views', 'get-login'), {
+            res.render(view, {
               title: 'Login',
               error: errorMessage,
               login: login
@@ -173,16 +185,19 @@ module.exports = function(app, config) {
 
     // destroy the session
     req.session = null;
-    
+      
     // clear local variables - they were set before the session was destroyed
     res.locals.username = null;
     res.locals.email = null;
 
+    // custom or built-in view
+    var view = cfg.views.loggedOut || path.join(__dirname, 'views', 'get-logout');
+
     // reder logout success template
-    res.render(path.join(__dirname, 'views', 'get-logout'), {
+    res.render(view, {
       title: 'Logout successful'
     });
-
+      
   });
   
 };
