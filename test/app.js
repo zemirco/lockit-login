@@ -21,7 +21,7 @@ function start(config) {
   app.locals.basedir = __dirname + '/views';
 
 // all environments
-  app.set('port', process.env.PORT || 3000);
+  app.set('port', process.env.PORT || config.port || 3000);
   app.set('views', __dirname + '/views');
   app.set('view engine', 'jade');
   app.use(express.favicon());
