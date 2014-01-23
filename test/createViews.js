@@ -2,10 +2,7 @@
 var config = require('./config.js');
 
 // create couchdb templates
-var db = require('nano')({
-  url: config.dbUrl,
-  request_defaults: config.request_defaults
-});
+var db = require('nano')(config.db);
 
 // couchdb views we need to make the app work
 var users = {
