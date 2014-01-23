@@ -26,8 +26,7 @@
     "debug": "~0.7.4",
     "ms": "~0.6.2",
     "moment": "~2.4.0",
-    "lockit-utils": "~0.0.2",
-    "lockit-couchdb-adapter": "0.0.3"
+    "lockit-utils": "0.1.0"
   },
   "devDependencies": {
     "supertest": "~0.8.2",
@@ -38,6 +37,7 @@
     "nano": "~4.1.1",
     "superagent": "~0.15.7",
     "jade": "~0.35.0",
-    "express": "~3.4.7"
+    "express": "~3.4.7",
+    "lockit-couchdb-adapter": "0.1.0"
   }
 }
