@@ -11,6 +11,20 @@ exports.emailSettings = {
   }
 };
 
+exports.login = {
+  route: '/login',
+  logoutRoute: '/logout',
+  views: {
+    login: '',          // input fields 'login' and 'password' | POST /'login.route' | local variable 'error'
+    loggedOut: ''   // message that user logged out
+  }
+};
+
+// signup settings
+exports.signup = {
+  tokenExpiration: '1 day'
+};
+
 // lock account
 exports.failedLoginsWarning = 3;
 exports.failedLoginAttempts = 5;
@@ -19,5 +33,4 @@ exports.failedLoginAttempts = 5;
 exports.accountLockedTime = '5 seconds';
 
 // settings for test
-exports.db = 'couchdb';
-exports.dbUrl = 'http://127.0.0.1:5984/test';
+exports.db = 'http://127.0.0.1:5984/test';
