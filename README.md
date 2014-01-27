@@ -49,6 +49,15 @@ More about configuration at [Lockit](https://github.com/zeMirco/lockit).
  - GET /login
  - POST /login
  - GET /logout
+ 
+## REST API
+
+If you've set `exports.rest = true` in your `config.js` the module behaves as follows.
+
+ - `GET /login` is `next()`ed and you have to catch it on the client
+ - `POST /login` stays the same but only sends JSON
+ - `GET /logout` becomes `GET /rest/logout` so you can render `/logout` on the client
+    and make an AJAX request to `/rest/logout`. You'll get a status code back.
 
 ## Test
 
