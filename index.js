@@ -21,10 +21,16 @@ module.exports = function(app, config) {
   // set default routes
   var loginRoute = cfg.route || '/login';
   var logoutRoute = cfg.logoutRoute || '/logout';
+  
+  // change URLs if REST is active
+  if (config.rest) logoutRoute = '/rest' + logoutRoute;
 
   // GET /login
-  app.get(loginRoute, function(req, res) {
+  app.get(loginRoute, function(req, res, next) {
     debug('rendering GET %s', loginRoute);
+    
+    // do not handle the route when REST is active
+    if (config.rest) return next();
 
     // save redirect url in session
     req.session.redirectUrlAfterLogin = req.query.redirect;
@@ -41,6 +47,8 @@ module.exports = function(app, config) {
   // POST /login
   app.post(loginRoute, function(req, res) {
     debug('POST request to %s: %j', loginRoute, req.body);
+    
+    var error = '';
 
     // session might include a url which the user requested before login
     var target = req.session.redirectUrlAfterLogin || '/';
@@ -55,10 +63,16 @@ module.exports = function(app, config) {
     // check for valid inputs
     if (!login || !password) {
       debug('invalid inputs');
+      error = 'Please enter your email/username and password';
+
+      // send only JSON when REST is active
+      if (config.rest) return res.json(403, {error: error});
+      
+      // render view
       res.status(403);
       res.render(view, {
         title: 'Login',
-        error: 'Please enter your email/username and password',
+        error: error,
         login: login
       });
       return;
@@ -77,10 +91,16 @@ module.exports = function(app, config) {
       // no user or user email isn't verified yet -> render error message
       if (!user || !user.emailVerified) {
         debug('no user found');
+        error = 'Invalid user or password';
+        
+        // send only JSON when REST is active
+        if (config.rest) return res.json(403, {error: error});
+        
+        // render view
         res.status(403);
         res.render(view, {
           title: 'Login',
-          error: 'Invalid user or password',
+          error: error,
           login: login
         });
         return;
@@ -89,10 +109,16 @@ module.exports = function(app, config) {
       // check for too many failed login attempts
       if (user.accountLocked && new Date(user.accountLockedUntil) > new Date()) {
         debug('too many failed login attempts');
+        error = 'The account is temporarily locked';
+        
+        // send only JSON when REST is active
+        if (config.rest) return res.json(403, {error: error});
+        
+        // render view
         res.status(403);
         res.render(view, {
           title: 'Login',
-          error: 'The account is temporarily locked',
+          error: error,
           login: login
         });
         return;
@@ -127,6 +153,9 @@ module.exports = function(app, config) {
           // save user to db
           adapter.update(user, function(err, user) {
             if (err) console.log(err);
+
+            // send only JSON when REST is active
+            if (config.rest) return res.json(403, {error: errorMessage});
 
             // send error message
             res.status(403);
@@ -170,6 +199,11 @@ module.exports = function(app, config) {
           // create session and save the username and email address
           req.session.username = user.username;
           req.session.email = user.email;
+
+          // send only JSON when REST is active
+          if (config.rest) return res.json(200);
+          
+          // redirect to target url
           res.redirect(target);
         });
         
@@ -180,6 +214,7 @@ module.exports = function(app, config) {
   });
   
   // GET /logout
+  // GET /rest/logout when REST is active
   app.get(logoutRoute, utils.restrict(config), function(req, res) {
     debug('rendering GET %s', logoutRoute);
 
@@ -189,6 +224,9 @@ module.exports = function(app, config) {
     // clear local variables - they were set before the session was destroyed
     res.locals.username = null;
     res.locals.email = null;
+
+    // send JSON when REST is active
+    if (config.rest) return res.send(200);
 
     // custom or built-in view
     var view = cfg.views.loggedOut || path.join(__dirname, 'views', 'get-logout');
