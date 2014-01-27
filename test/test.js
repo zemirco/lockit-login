@@ -22,6 +22,12 @@ altConfig.login.views = {
 
 var altApp = require('./app.js')(altConfig);
 
+// create third app for testing REST
+var config_3 = JSON.parse(JSON.stringify(config));
+config_3.rest = true;
+config_3.port = 5000;
+var app_3 = require('./app.js')(config_3);
+
 before(function(done) {
   // add a dummy user to db - email isn't verified yet
   adapter.save('john', 'john@email.com', 'password', function(err, user) {
@@ -40,7 +46,18 @@ before(function(done) {
         // save updated user to db
         adapter.update(user, function(err, user) {
           if (err) console.log(err);
-          done();
+          
+          // create another use for REST testing
+          adapter.save('beep', 'beep@email.com', 'password', function(err, user) {
+            // verify email for steve
+            adapter.find('username', 'beep', function(err, user) {
+              user.emailVerified = true;
+              // save updated user to db
+              adapter.update(user, function(err, user) {
+                done();
+              });
+            });
+          });
         });
 
       });
@@ -84,6 +101,15 @@ describe('lockit-login', function() {
         });
     });
 
+    it('should not catch the route when REST is active', function(done) {
+      request(app_3)
+        .get('/login')
+        .end(function(err, res) {
+          res.text.should.include('Cannot GET /login');
+          done();
+        });
+    });
+
   });
 
   describe('POST /login', function() {
@@ -96,12 +122,34 @@ describe('lockit-login', function() {
       });
     });
 
+    it('should send a JSON error message when login field is invalid', function(done) {
+      request(app_3)
+        .post('/login')
+        .send({login: '', password: 'secret'})
+        .end(function(err, res) {
+          res.statusCode.should.equal(403);
+          res.text.should.equal('{"error":"Please enter your email/username and password"}');
+          done();
+        });
+    });
+
     it('should render an error message when password field is empty', function(done) {
       postLogin('john', '', function(err, res) {
         res.statusCode.should.equal(403);
         res.text.should.include('Please enter your email/username and password');
         done();
       });
+    });
+
+    it('should send a JSON error message when password field is empty', function(done) {
+      request(app_3)
+        .post('/login')
+        .send({login: 'john', password: ''})
+        .end(function(err, res) {
+          res.statusCode.should.equal(403);
+          res.text.should.equal('{"error":"Please enter your email/username and password"}');
+          done();
+        });
     });
 
     it('should render an error message when email is not verified', function(done) {
@@ -112,6 +160,17 @@ describe('lockit-login', function() {
       });
     });
 
+    it('should send a JSON error message when email is not verified', function(done) {
+      request(app_3)
+        .post('/login')
+        .send({login: 'john', password: 'password'})
+        .end(function(err, res) {
+          res.statusCode.should.equal(403);
+          res.text.should.equal('{"error":"Invalid user or password"}');
+          done();
+        });
+    });
+
     it('should render an error message when user is not in db', function(done) {
       postLogin('jack', 'password', function(err, res) {
         res.statusCode.should.equal(403);
@@ -120,12 +179,34 @@ describe('lockit-login', function() {
       });
     });
 
+    it('should render a JSON error message when user is not in db', function(done) {
+      request(app_3)
+        .post('/login')
+        .send({login: 'jack', password: 'password'})
+        .end(function(err, res) {
+          res.statusCode.should.equal(403);
+          res.text.should.equal('{"error":"Invalid user or password"}');
+          done();
+        });
+    });
+
     it('should render an error message when password is false', function(done) {
       postLogin('john', 'something', function(err, res) {
         res.statusCode.should.equal(403);
         res.text.should.include('Invalid user or password');
         done();
       });
+    });
+
+    it('should render a JSON error message when password is false', function(done) {
+      request(app_3)
+        .post('/login')
+        .send({login: 'john', password: 'something'})
+        .end(function(err, res) {
+          res.statusCode.should.equal(403);
+          res.text.should.equal('{"error":"Invalid user or password"}');
+          done();
+        });
     });
 
     it('should show a warning message after three failed login attempts', function(done) {
@@ -143,6 +224,29 @@ describe('lockit-login', function() {
 
     });
 
+    it('should show a JSON error after three failed login attempts', function(done) {
+      
+      // don't use "steve" again as account will get locked
+      request(app_3)
+        .post('/login')
+        .send({login: 'beep', password: 'wrong'})
+        .end(function(err, res) {
+          request(app_3)
+            .post('/login')
+            .send({login: 'beep', password: 'wrong'})
+            .end(function(err, res) {
+              request(app_3)
+                .post('/login')
+                .send({login: 'beep', password: 'wrong'})
+                .end(function(err, res) {
+                  res.statusCode.should.equal(403);
+                  res.text.should.equal('{"error":"Invalid user or password. Your account will be locked soon."}');
+                  done();
+                });
+            });
+        });
+    });
+
     it('should lock the account after five failed login attempts', function(done) {
 
       // two more login attempts
@@ -156,6 +260,25 @@ describe('lockit-login', function() {
 
     });
 
+    it('should lock the account after five failed login attempts (REST)', function(done) {
+
+      // two more login attempts
+      request(app_3)
+        .post('/login')
+        .send({login: 'beep', password: 'wrong'})
+        .end(function(err, res) {
+          request(app_3)
+            .post('/login')
+            .send({login: 'beep', password: 'wrong'})
+            .end(function(err, res) {
+              res.statusCode.should.equal(403);
+              res.text.should.equal('{"error":"Invalid user or password. Your account is now locked for ' + config.accountLockedTime + '"}');
+              done();
+            });
+        });
+
+    });
+
     it('should not allow login with a locked user account', function(done) {
       postLogin('steve', 'wrong', function(err, res) {
         res.statusCode.should.equal(403);
@@ -164,9 +287,20 @@ describe('lockit-login', function() {
       });
     });
 
+    it('should not allow login with a locked user account (REST)', function(done) {
+      request(app_3)
+        .post('/login')
+        .send({login: 'beep', password: 'wrong'})
+        .end(function(err, res) {
+          res.statusCode.should.equal(403);
+          res.text.should.equal('{"error":"The account is temporarily locked"}');
+          done();
+        });
+    });
+
     it('should enable a locked account after certain amount of time', function(done) {
 
-      // time is 10s in config
+      // time is 5s in config
       setTimeout(function() {
         postLogin('steve', 'wrong', function(err, res) {
           res.statusCode.should.equal(403);
@@ -174,6 +308,17 @@ describe('lockit-login', function() {
           done();
         });
       }, 5000);
+    });
+
+    it('should enable a locked account after certain amount of time (REST)', function(done) {
+
+      request(app_3)
+        .post('/login')
+        .send({login: 'beep', password: 'password'})
+        .end(function(err, res) {
+          res.statusCode.should.equal(200);
+          done();
+        });
     });
 
     it('should allow login in with a username', function(done) {
@@ -202,6 +347,18 @@ describe('lockit-login', function() {
 
     });
 
+    it('should allow login in with a username (REST)', function(done) {
+
+      request(app_3)
+        .post('/login')
+        .send({login: 'john', password: 'password'})
+        .end(function(err, res) {
+          res.statusCode.should.equal(200);
+          done();
+        });
+
+    });
+
     it('should allow login in with an email', function(done) {
 
       // we don't have to verify the email address as it is done by the test before
@@ -211,6 +368,17 @@ describe('lockit-login', function() {
         res.header.location.should.include('/');
         done();
       });
+    });
+
+    it('should allow login in with an email (REST)', function(done) {
+
+      request(app_3)
+        .post('/login')
+        .send({login: 'john@email.com', password: 'password'})
+        .end(function(err, res) {
+          res.statusCode.should.equal(200);
+          done();
+        });
     });
 
     it('should redirect to the main page when no redirect was necessary', function(done) {
@@ -328,6 +496,26 @@ describe('lockit-login', function() {
       
     });
 
+    it('should only send the status code if REST is active', function(done) {
+
+      // login first
+      agent
+        .post('http://localhost:4000/login')
+        .send({login:'john', password:'password'})
+        .end(function(err, res) {
+
+          // then logout
+          agent
+            .get('http://localhost:5000/rest/logout')
+            .end(function(err, res) {
+              res.statusCode.should.equal(200);
+              done();
+            });
+
+        });
+
+    });
+
   });
 
 });
@@ -339,7 +527,10 @@ after(function(done) {
     if (err) console.log(err);
     adapter.remove('username', 'steve', function(err) {
       if (err) console.log(err);
-      done();
+      adapter.remove('username', 'beep', function(err) {
+        if (err) console.log(err);
+        done();
+      });
     });
   });
 
