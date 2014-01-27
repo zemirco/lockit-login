@@ -24,6 +24,8 @@ function start(config) {
   app.set('port', process.env.PORT || config.port || 3000);
   app.set('views', __dirname + '/views');
   app.set('view engine', 'jade');
+  // make JSON output simpler for testing
+  app.set('json spaces', 0);
   app.use(express.favicon());
   app.use(express.bodyParser());
   app.use(express.methodOverride());
