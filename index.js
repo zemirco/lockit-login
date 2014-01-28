@@ -25,10 +25,22 @@ module.exports = function(app, config) {
   // change URLs if REST is active
   if (config.rest) logoutRoute = '/rest' + logoutRoute;
 
+  /**
+   * Routes
+   */
+  
+  app.get(loginRoute, getLogin);
+  app.post(loginRoute, postLogin);
+  app.get(logoutRoute, utils.restrict(config), getLogout);
+
+  /**
+   * Route handlers
+   */
+  
   // GET /login
-  app.get(loginRoute, function(req, res, next) {
+  function getLogin(req, res, next) {
     debug('rendering GET %s', loginRoute);
-    
+
     // do not handle the route when REST is active
     if (config.rest) return next();
 
@@ -37,23 +49,23 @@ module.exports = function(app, config) {
 
     // custom or built-in view
     var view = cfg.views.login || path.join(__dirname, 'views', 'get-login');
-        
+
     // render view
     res.render(view, {
       title: 'Login'
     });
-  });
+  }
   
-  // POST /login
-  app.post(loginRoute, function(req, res) {
+  // POST /login  
+  function postLogin(req, res) {
     debug('POST request to %s: %j', loginRoute, req.body);
-    
+
     var error = '';
 
     // session might include a url which the user requested before login
     var target = req.session.redirectUrlAfterLogin || '/';
     debug('redirect target is: %s', target);
-    
+
     var login = req.body.login;
     var password = req.body.password;
 
@@ -67,7 +79,7 @@ module.exports = function(app, config) {
 
       // send only JSON when REST is active
       if (config.rest) return res.json(403, {error: error});
-      
+
       // render view
       res.status(403);
       res.render(view, {
@@ -77,25 +89,25 @@ module.exports = function(app, config) {
       });
       return;
     }
-    
+
     // check if login is a username or an email address
-    
+
     // regexp from https://github.com/angular/angular.js/blob/master/src/ng/directive/input.js#L4
     var EMAIL_REGEXP = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,6}$/;
     var query = EMAIL_REGEXP.test(login) ? 'email' : 'username';
-    
+
     // find user in db
     adapter.find(query, login, function(err, user) {
       if (err) console.log(err);
-      
+
       // no user or user email isn't verified yet -> render error message
       if (!user || !user.emailVerified) {
         debug('no user found');
         error = 'Invalid user or password';
-        
+
         // send only JSON when REST is active
         if (config.rest) return res.json(403, {error: error});
-        
+
         // render view
         res.status(403);
         res.render(view, {
@@ -110,10 +122,10 @@ module.exports = function(app, config) {
       if (user.accountLocked && new Date(user.accountLockedUntil) > new Date()) {
         debug('too many failed login attempts');
         error = 'The account is temporarily locked';
-        
+
         // send only JSON when REST is active
         if (config.rest) return res.json(403, {error: error});
-        
+
         // render view
         res.status(403);
         res.render(view, {
@@ -127,7 +139,7 @@ module.exports = function(app, config) {
       // compare hash with hash from db
       bcrypt.compare(password, user.hash, function(err, valid) {
         if (err) console.log(err);
-        
+
         if (!valid) {
           debug('invalid password');
           // set the default error message
@@ -169,12 +181,12 @@ module.exports = function(app, config) {
           return;
 
         }
-        
+
         // looks like password is correct
-        
+
         // shift tracking values        
         var now = new Date();
-        
+
         // update previous login time and ip
         user.previousLoginTime = user.currentLoginTime || now;
         user.previousLoginIp = user.currentLoginIp || req.ip;
@@ -182,12 +194,12 @@ module.exports = function(app, config) {
         // save login time
         user.currentLoginTime = now;
         user.currentLoginIp = req.ip;
-        
+
         // set failed login attempts to zero but save them in the session
         req.session.failedLoginAttempts = user.failedLoginAttempts;
         user.failedLoginAttempts = 0;
         user.accountLocked = false;
-        
+
         // save user to db
         adapter.update(user, function(err, user) {
           debug('updated user: %j', user);
@@ -201,26 +213,25 @@ module.exports = function(app, config) {
           req.session.email = user.email;
 
           // send only JSON when REST is active
-          if (config.rest) return res.json(200);
-          
+          if (config.rest) return res.send(200);
+
           // redirect to target url
           res.redirect(target);
         });
-        
+
       });
-      
+
     });
-    
-  });
+  }
   
   // GET /logout
-  // GET /rest/logout when REST is active
-  app.get(logoutRoute, utils.restrict(config), function(req, res) {
+  // GET /rest/logout when REST is active  
+  function getLogout(req, res) {
     debug('rendering GET %s', logoutRoute);
 
     // destroy the session
     req.session = null;
-      
+
     // clear local variables - they were set before the session was destroyed
     res.locals.username = null;
     res.locals.email = null;
@@ -235,7 +246,6 @@ module.exports = function(app, config) {
     res.render(view, {
       title: 'Logout successful'
     });
-      
-  });
+  }
   
 };
