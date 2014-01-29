@@ -103,9 +103,9 @@ describe('lockit-login', function() {
 
     it('should not catch the route when REST is active', function(done) {
       request(app_3)
-        .get('/login')
+        .get('/rest/login')
         .end(function(err, res) {
-          res.text.should.include('Cannot GET /login');
+          res.text.should.include('Cannot GET /rest/login');
           done();
         });
     });
@@ -124,7 +124,7 @@ describe('lockit-login', function() {
 
     it('should send a JSON error message when login field is invalid', function(done) {
       request(app_3)
-        .post('/login')
+        .post('/rest/login')
         .send({login: '', password: 'secret'})
         .end(function(err, res) {
           res.statusCode.should.equal(403);
@@ -143,7 +143,7 @@ describe('lockit-login', function() {
 
     it('should send a JSON error message when password field is empty', function(done) {
       request(app_3)
-        .post('/login')
+        .post('/rest/login')
         .send({login: 'john', password: ''})
         .end(function(err, res) {
           res.statusCode.should.equal(403);
@@ -162,7 +162,7 @@ describe('lockit-login', function() {
 
     it('should send a JSON error message when email is not verified', function(done) {
       request(app_3)
-        .post('/login')
+        .post('/rest/login')
         .send({login: 'john', password: 'password'})
         .end(function(err, res) {
           res.statusCode.should.equal(403);
@@ -181,7 +181,7 @@ describe('lockit-login', function() {
 
     it('should render a JSON error message when user is not in db', function(done) {
       request(app_3)
-        .post('/login')
+        .post('/rest/login')
         .send({login: 'jack', password: 'password'})
         .end(function(err, res) {
           res.statusCode.should.equal(403);
@@ -200,7 +200,7 @@ describe('lockit-login', function() {
 
     it('should render a JSON error message when password is false', function(done) {
       request(app_3)
-        .post('/login')
+        .post('/rest/login')
         .send({login: 'john', password: 'something'})
         .end(function(err, res) {
           res.statusCode.should.equal(403);
@@ -228,15 +228,15 @@ describe('lockit-login', function() {
       
       // don't use "steve" again as account will get locked
       request(app_3)
-        .post('/login')
+        .post('/rest/login')
         .send({login: 'beep', password: 'wrong'})
         .end(function(err, res) {
           request(app_3)
-            .post('/login')
+            .post('/rest/login')
             .send({login: 'beep', password: 'wrong'})
             .end(function(err, res) {
               request(app_3)
-                .post('/login')
+                .post('/rest/login')
                 .send({login: 'beep', password: 'wrong'})
                 .end(function(err, res) {
                   res.statusCode.should.equal(403);
@@ -264,11 +264,11 @@ describe('lockit-login', function() {
 
       // two more login attempts
       request(app_3)
-        .post('/login')
+        .post('/rest/login')
         .send({login: 'beep', password: 'wrong'})
         .end(function(err, res) {
           request(app_3)
-            .post('/login')
+            .post('/rest/login')
             .send({login: 'beep', password: 'wrong'})
             .end(function(err, res) {
               res.statusCode.should.equal(403);
@@ -289,7 +289,7 @@ describe('lockit-login', function() {
 
     it('should not allow login with a locked user account (REST)', function(done) {
       request(app_3)
-        .post('/login')
+        .post('/rest/login')
         .send({login: 'beep', password: 'wrong'})
         .end(function(err, res) {
           res.statusCode.should.equal(403);
@@ -313,7 +313,7 @@ describe('lockit-login', function() {
     it('should enable a locked account after certain amount of time (REST)', function(done) {
 
       request(app_3)
-        .post('/login')
+        .post('/rest/login')
         .send({login: 'beep', password: 'password'})
         .end(function(err, res) {
           res.statusCode.should.equal(200);
@@ -350,7 +350,7 @@ describe('lockit-login', function() {
     it('should allow login in with a username (REST)', function(done) {
 
       request(app_3)
-        .post('/login')
+        .post('/rest/login')
         .send({login: 'john', password: 'password'})
         .end(function(err, res) {
           res.statusCode.should.equal(200);
@@ -373,7 +373,7 @@ describe('lockit-login', function() {
     it('should allow login in with an email (REST)', function(done) {
 
       request(app_3)
-        .post('/login')
+        .post('/rest/login')
         .send({login: 'john@email.com', password: 'password'})
         .end(function(err, res) {
           res.statusCode.should.equal(200);
