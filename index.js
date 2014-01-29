@@ -5,8 +5,19 @@ var ms = require('ms');
 var moment = require('moment');
 var utls = require('lockit-utils');
 var debug = require('debug')('lockit-login');
-
 var utils = require('lockit-utils');
+
+/**
+ * Internal helper functions
+ */
+
+function join(view) {
+  return path.join(__dirname, 'views', view);
+}
+
+/**
+ * Let's get serious
+ */
 
 module.exports = function(app, config) {
 
@@ -23,7 +34,10 @@ module.exports = function(app, config) {
   var logoutRoute = cfg.logoutRoute || '/logout';
   
   // change URLs if REST is active
-  if (config.rest) logoutRoute = '/rest' + logoutRoute;
+  if (config.rest) {
+    loginRoute = '/rest' + loginRoute;
+    logoutRoute = '/rest' + logoutRoute;
+  }
 
   /**
    * Routes
@@ -48,7 +62,7 @@ module.exports = function(app, config) {
     req.session.redirectUrlAfterLogin = req.query.redirect;
 
     // custom or built-in view
-    var view = cfg.views.login || path.join(__dirname, 'views', 'get-login');
+    var view = cfg.views.login || join('get-login');
 
     // render view
     res.render(view, {
@@ -70,7 +84,7 @@ module.exports = function(app, config) {
     var password = req.body.password;
 
     // custom or built-in view
-    var view = cfg.views.login || path.join(__dirname, 'views', 'get-login');
+    var view = cfg.views.login || join('get-login');
 
     // check for valid inputs
     if (!login || !password) {
@@ -240,7 +254,7 @@ module.exports = function(app, config) {
     if (config.rest) return res.send(200);
 
     // custom or built-in view
-    var view = cfg.views.loggedOut || path.join(__dirname, 'views', 'get-logout');
+    var view = cfg.views.loggedOut || join('get-logout');
 
     // reder logout success template
     res.render(view, {
