@@ -26,7 +26,7 @@
     "debug": "~0.7.4",
     "ms": "~0.6.2",
     "moment": "~2.4.0",
-    "lockit-utils": "0.1.0"
+    "lockit-utils": "0.1.1"
   },
   "devDependencies": {
     "supertest": "~0.8.2",
