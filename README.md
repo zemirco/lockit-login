@@ -2,8 +2,6 @@
 
 [![Build Status](https://travis-ci.org/zeMirco/lockit-login.png?branch=master)](https://travis-ci.org/zeMirco/lockit-login) [![NPM version](https://badge.fury.io/js/lockit-login.png)](http://badge.fury.io/js/lockit-login)
 
-[![NPM](https://nodei.co/npm/lockit-login.png)](https://nodei.co/npm/lockit-login/)
-
 Log in users to your Express app. The module is part of [Lockit](https://github.com/zeMirco/lockit).
 
 ## Installation
