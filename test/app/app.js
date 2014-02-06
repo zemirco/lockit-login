@@ -9,7 +9,7 @@ var user = require('./routes/user');
 var http = require('http');
 var path = require('path');
 
-var login = require('../index.js');
+var login = require('../../index.js');
 
 function start(config) {
 
@@ -31,6 +31,19 @@ function start(config) {
   app.use(express.methodOverride());
   app.use(express.cookieParser('your secret here'));
   app.use(express.cookieSession());
+  
+  if (config.csrf) {
+    app.use(express.csrf());
+    app.use(function(req, res, next) {
+
+      var token = req.csrfToken();
+      res.locals._csrf = token;
+
+      // save token to a cookie so we can easily access it on the client
+      res.cookie('csrf', token);
+      next();
+    });
+  }
 
   // use forgot password middleware with testing options
   login(app, config);
