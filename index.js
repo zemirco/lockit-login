@@ -3,9 +3,12 @@ var path = require('path');
 var bcrypt = require('bcrypt');
 var ms = require('ms');
 var moment = require('moment');
-var utls = require('lockit-utils');
 var debug = require('debug')('lockit-login');
 var utils = require('lockit-utils');
+
+// require event emitter
+var events = require('events');
+var util = require('util');
 
 /**
  * Internal helper functions
@@ -19,20 +22,22 @@ function join(view) {
  * Let's get serious
  */
 
-module.exports = function(app, config) {
+var Login = module.exports = function(app, config) {
+  
+  var that = this;
 
-  var db = utls.getDatabase(config);
+  var db = utils.getDatabase(config);
 
   // load additional modules
   var adapter = require(db.adapter)(config);
-  
+
   // shorten config
   var cfg = config.login;
 
   // set default routes
   var loginRoute = cfg.route || '/login';
   var logoutRoute = cfg.logoutRoute || '/logout';
-  
+
   // change URLs if REST is active
   if (config.rest) {
     loginRoute = '/rest' + loginRoute;
@@ -42,7 +47,7 @@ module.exports = function(app, config) {
   /**
    * Routes
    */
-  
+
   app.get(loginRoute, getLogin);
   app.post(loginRoute, postLogin);
   app.get(logoutRoute, utils.restrict(config), getLogout);
@@ -50,8 +55,8 @@ module.exports = function(app, config) {
   /**
    * Route handlers
    */
-  
-  // GET /login
+
+    // GET /login
   function getLogin(req, res, next) {
     debug('rendering GET %s', loginRoute);
 
@@ -69,7 +74,7 @@ module.exports = function(app, config) {
       title: 'Login'
     });
   }
-  
+
   // POST /login  
   function postLogin(req, res) {
     debug('POST request to %s: %j', loginRoute, req.body);
@@ -225,24 +230,37 @@ module.exports = function(app, config) {
           // create session and save the username and email address
           req.session.username = user.username;
           req.session.email = user.email;
+          
+          // emit 'login' event
+          that.emit('login', user, res, target);
+          
+          // let lockit handle the response
+          if (cfg.handleResponse) {
+            // send only JSON when REST is active
+            if (config.rest) return res.send(200);
 
-          // send only JSON when REST is active
-          if (config.rest) return res.send(200);
-
-          // redirect to target url
-          res.redirect(target);
+            // redirect to target url
+            res.redirect(target);
+          }
+          
         });
 
       });
 
     });
   }
-  
+
   // GET /logout
   // GET /rest/logout when REST is active  
   function getLogout(req, res) {
     debug('rendering GET %s', logoutRoute);
-
+    
+    // save values for event emitter
+    var user = {
+      username: req.session.username,
+      email: req.session.email
+    };
+    
     // destroy the session
     req.session = null;
 
@@ -250,16 +268,29 @@ module.exports = function(app, config) {
     res.locals.username = null;
     res.locals.email = null;
 
-    // send JSON when REST is active
-    if (config.rest) return res.send(200);
+    // emit 'logout' event
+    that.emit('logout', user, res);
+    
+    // let lockit handle the response
+    if (cfg.handleResponse) {
 
-    // custom or built-in view
-    var view = cfg.views.loggedOut || join('get-logout');
+      // send JSON when REST is active
+      if (config.rest) return res.send(200);
 
-    // reder logout success template
-    res.render(view, {
-      title: 'Logout successful'
-    });
+      // custom or built-in view
+      var view = cfg.views.loggedOut || join('get-logout');
+
+      // reder logout success template
+      res.render(view, {
+        title: 'Logout successful'
+      });
+      
+    }
+
   }
   
+  events.EventEmitter.call(this);
+  
 };
+
+util.inherits(Login, events.EventEmitter);
