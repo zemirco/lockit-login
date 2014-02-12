@@ -17,7 +17,8 @@ exports.login = {
   views: {
     login: '',          // input fields 'login' and 'password' | POST /'login.route' | local variable 'error'
     loggedOut: ''   // message that user logged out
-  }
+  },
+  handleResponse: true  // let Lockit handle the response which is sent to the user
 };
 
 // signup settings
