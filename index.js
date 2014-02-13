@@ -23,6 +23,10 @@ function join(view) {
  */
 
 var Login = module.exports = function(app, config) {
+
+  if (!(this instanceof Login)) {
+    return new Login(app, config);
+  }
   
   var that = this;
 
