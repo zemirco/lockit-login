@@ -3,7 +3,6 @@ var path = require('path');
 var bcrypt = require('bcrypt');
 var ms = require('ms');
 var moment = require('moment');
-var debug = require('debug')('lockit-login');
 var utils = require('lockit-utils');
 
 // require event emitter
@@ -27,7 +26,7 @@ var Login = module.exports = function(app, config) {
   if (!(this instanceof Login)) {
     return new Login(app, config);
   }
-  
+
   var that = this;
 
   var db = utils.getDatabase(config);
@@ -62,8 +61,6 @@ var Login = module.exports = function(app, config) {
 
     // GET /login
   function getLogin(req, res, next) {
-    debug('rendering GET %s', loginRoute);
-
     // do not handle the route when REST is active
     if (config.rest) return next();
 
@@ -79,15 +76,13 @@ var Login = module.exports = function(app, config) {
     });
   }
 
-  // POST /login  
+  // POST /login
   function postLogin(req, res) {
-    debug('POST request to %s: %j', loginRoute, req.body);
 
     var error = '';
 
     // session might include a url which the user requested before login
     var target = req.session.redirectUrlAfterLogin || '/';
-    debug('redirect target is: %s', target);
 
     var login = req.body.login;
     var password = req.body.password;
@@ -97,7 +92,6 @@ var Login = module.exports = function(app, config) {
 
     // check for valid inputs
     if (!login || !password) {
-      debug('invalid inputs');
       error = 'Please enter your email/username and password';
 
       // send only JSON when REST is active
@@ -125,7 +119,6 @@ var Login = module.exports = function(app, config) {
 
       // no user or user email isn't verified yet -> render error message
       if (!user || !user.emailVerified) {
-        debug('no user found');
         error = 'Invalid user or password';
 
         // send only JSON when REST is active
@@ -143,7 +136,6 @@ var Login = module.exports = function(app, config) {
 
       // check for too many failed login attempts
       if (user.accountLocked && new Date(user.accountLockedUntil) > new Date()) {
-        debug('too many failed login attempts');
         error = 'The account is temporarily locked';
 
         // send only JSON when REST is active
@@ -164,7 +156,6 @@ var Login = module.exports = function(app, config) {
         if (err) console.log(err);
 
         if (!valid) {
-          debug('invalid password');
           // set the default error message
           var errorMessage = 'Invalid user or password';
 
@@ -207,7 +198,7 @@ var Login = module.exports = function(app, config) {
 
         // looks like password is correct
 
-        // shift tracking values        
+        // shift tracking values
         var now = new Date();
 
         // update previous login time and ip
@@ -225,7 +216,6 @@ var Login = module.exports = function(app, config) {
 
         // save user to db
         adapter.update(user, function(err, user) {
-          debug('updated user: %j', user);
           if (err) console.log(err);
 
           // reset the session
@@ -234,10 +224,10 @@ var Login = module.exports = function(app, config) {
           // create session and save the username and email address
           req.session.username = user.username;
           req.session.email = user.email;
-          
+
           // emit 'login' event
           that.emit('login', user, res, target);
-          
+
           // let lockit handle the response
           if (cfg.handleResponse) {
             // send only JSON when REST is active
@@ -246,7 +236,7 @@ var Login = module.exports = function(app, config) {
             // redirect to target url
             res.redirect(target);
           }
-          
+
         });
 
       });
@@ -255,16 +245,15 @@ var Login = module.exports = function(app, config) {
   }
 
   // GET /logout
-  // GET /rest/logout when REST is active  
+  // GET /rest/logout when REST is active
   function getLogout(req, res) {
-    debug('rendering GET %s', logoutRoute);
-    
+
     // save values for event emitter
     var user = {
       username: req.session.username,
       email: req.session.email
     };
-    
+
     // destroy the session
     req.session = null;
 
@@ -274,7 +263,7 @@ var Login = module.exports = function(app, config) {
 
     // emit 'logout' event
     that.emit('logout', user, res);
-    
+
     // let lockit handle the response
     if (cfg.handleResponse) {
 
@@ -288,13 +277,13 @@ var Login = module.exports = function(app, config) {
       res.render(view, {
         title: 'Logout successful'
       });
-      
+
     }
 
   }
-  
+
   events.EventEmitter.call(this);
-  
+
 };
 
 util.inherits(Login, events.EventEmitter);
