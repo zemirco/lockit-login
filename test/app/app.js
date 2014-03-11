@@ -27,11 +27,12 @@ function start(config) {
   // make JSON output simpler for testing
   app.set('json spaces', 0);
   app.use(express.favicon());
-  app.use(express.bodyParser());
+  app.use(express.urlencoded());
+  app.use(express.json());
   app.use(express.methodOverride());
   app.use(express.cookieParser('your secret here'));
   app.use(express.cookieSession());
-  
+
   if (config.csrf) {
     app.use(express.csrf());
     app.use(function(req, res, next) {
@@ -78,9 +79,7 @@ function start(config) {
     res.send('well done');
   });
 
-  http.createServer(app).listen(app.get('port'), function(){
-    console.log('Express server listening on port ' + app.get('port'));
-  });
+  http.createServer(app).listen(app.get('port'));
 
   return app;
 

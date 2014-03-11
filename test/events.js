@@ -14,7 +14,8 @@ app.locals.basedir = __dirname + '/app/views';
 app.set('port', 6500);
 app.set('views', __dirname + '/views');
 app.set('view engine', 'jade');
-app.use(express.bodyParser());
+app.use(express.urlencoded());
+app.use(express.json());
 app.use(express.cookieParser('your secret here'));
 app.use(express.cookieSession());
 app.use(function(req, res, next) {
@@ -26,9 +27,7 @@ app.get('/jep', function(req, res) {
   res.send(200);
 });
 app.use(express.static(path.join(__dirname, 'public')));
-http.createServer(app).listen(app.get('port'), function(){
-  console.log('Express server listening on port ' + app.get('port'));
-});
+http.createServer(app).listen(app.get('port'));
 var login = new Login(app, config);
 
 // create second app that manually handles responses
@@ -39,14 +38,13 @@ app_two.locals.basedir = __dirname + '/app/views';
 app_two.set('port', 6501);
 app_two.set('views', __dirname + '/views');
 app_two.set('view engine', 'jade');
-app_two.use(express.bodyParser());
+app_two.use(express.urlencoded());
+app_two.use(express.json());
 app_two.use(express.cookieParser('your secret here'));
 app_two.use(express.cookieSession());
 app_two.use(app_two.router);
 app_two.use(express.static(path.join(__dirname, 'public')));
-http.createServer(app_two).listen(app_two.get('port'), function(){
-  console.log('Express server listening on port ' + app_two.get('port'));
-});
+http.createServer(app_two).listen(app_two.get('port'));
 var login_two = new Login(app_two, config_two);
 
 var db = utls.getDatabase(config);
@@ -102,7 +100,7 @@ describe('# event listeners', function() {
     });
 
   });
-  
+
   describe('POST /login (handleResponse = false)', function() {
     // user 'event' needs to log out first
     it('should allow manual response handling', function(done) {
@@ -134,7 +132,7 @@ describe('# event listeners', function() {
     });
 
   });
-  
+
   after(function(done) {
     adapter.remove('username', 'event', done);
   });
