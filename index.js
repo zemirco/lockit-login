@@ -1,4 +1,3 @@
-
 var path = require('path');
 var bcrypt = require('bcrypt');
 var ms = require('ms');
