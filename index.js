@@ -231,7 +231,7 @@ var Login = module.exports = function(app, config) {
           // let lockit handle the response
           if (cfg.handleResponse) {
             // send only JSON when REST is active
-            if (config.rest) return res.send(200);
+            if (config.rest) return res.send(204);
 
             // redirect to target url
             res.redirect(target);
@@ -268,7 +268,7 @@ var Login = module.exports = function(app, config) {
     if (cfg.handleResponse) {
 
       // send JSON when REST is active
-      if (config.rest) return res.send(200);
+      if (config.rest) return res.send(204);
 
       // custom or built-in view
       var view = cfg.views.loggedOut || join('get-logout');

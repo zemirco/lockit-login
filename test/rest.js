@@ -171,7 +171,7 @@ describe('# with REST enabled', function() {
           .post('/rest/login')
           .send({login: 'beep', password: 'password'})
           .end(function(err, res) {
-            res.statusCode.should.equal(200);
+            res.statusCode.should.equal(204);
             done();
           });
       }, 5000);
@@ -182,7 +182,7 @@ describe('# with REST enabled', function() {
         .post('/rest/login')
         .send({login: 'beep', password: 'password'})
         .end(function(err, res) {
-          res.statusCode.should.equal(200);
+          res.statusCode.should.equal(204);
           done();
         });
     });
@@ -192,7 +192,7 @@ describe('# with REST enabled', function() {
         .post('/rest/login')
         .send({login: 'beep@email.com', password: 'password'})
         .end(function(err, res) {
-          res.statusCode.should.equal(200);
+          res.statusCode.should.equal(204);
           done();
         });
     });
@@ -213,7 +213,7 @@ describe('# with REST enabled', function() {
           agent
             .get('http://localhost:5000/rest/logout')
             .end(function(err, res) {
-              res.statusCode.should.equal(200);
+              res.statusCode.should.equal(204);
               done();
             });
         });
