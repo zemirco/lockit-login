@@ -21,18 +21,11 @@ function join(view) {
  * Let's get serious
  */
 
-var Login = module.exports = function(app, config) {
+var Login = module.exports = function(app, config, adapter) {
 
-  if (!(this instanceof Login)) {
-    return new Login(app, config);
-  }
+  if (!(this instanceof Login)) return new Login(app, config, adapter);
 
   var that = this;
-
-  var db = utils.getDatabase(config);
-
-  // load additional modules
-  var adapter = require(db.adapter)(config);
 
   // shorten config
   var cfg = config.login;
