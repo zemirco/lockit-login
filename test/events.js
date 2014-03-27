@@ -28,7 +28,11 @@ app.get('/jep', function(req, res) {
 });
 app.use(express.static(path.join(__dirname, 'public')));
 http.createServer(app).listen(app.get('port'));
-var login = new Login(app, config);
+
+var db = utls.getDatabase(config);
+var adapter = require(db.adapter)(config);
+
+var login = new Login(app, config, adapter);
 
 // create second app that manually handles responses
 var config_two = JSON.parse(JSON.stringify(config));
@@ -45,10 +49,8 @@ app_two.use(express.cookieSession());
 app_two.use(app_two.router);
 app_two.use(express.static(path.join(__dirname, 'public')));
 http.createServer(app_two).listen(app_two.get('port'));
-var login_two = new Login(app_two, config_two);
 
-var db = utls.getDatabase(config);
-var adapter = require(db.adapter)(config);
+var login_two = new Login(app_two, config_two, adapter);
 
 describe('# event listeners', function() {
 
