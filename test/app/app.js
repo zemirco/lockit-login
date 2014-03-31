@@ -32,7 +32,13 @@ function start(config) {
   app.use(express.json());
   app.use(express.methodOverride());
   app.use(express.cookieParser('your secret here'));
-  app.use(express.cookieSession());
+
+  if (config.useSessionStore) {
+    console.log('using session store');
+    app.use(express.session());
+  } else {
+    app.use(express.cookieSession());
+  }
 
   if (config.csrf) {
     app.use(express.csrf());
