@@ -248,29 +248,36 @@ var Login = module.exports = function(app, config, adapter) {
     };
 
     // destroy the session
-    req.session = null;
+    if (req.sessionStore) {
+      req.session.destroy(done);
+    } else {
+      req.session = null;
+      done();
+    }
 
-    // clear local variables - they were set before the session was destroyed
-    res.locals.username = null;
-    res.locals.email = null;
+    function done() {
+      // clear local variables - they were set before the session was destroyed
+      res.locals.username = null;
+      res.locals.email = null;
 
-    // emit 'logout' event
-    that.emit('logout', user, res);
+      // emit 'logout' event
+      that.emit('logout', user, res);
 
-    // let lockit handle the response
-    if (cfg.handleResponse) {
+      // let lockit handle the response
+      if (cfg.handleResponse) {
 
-      // send JSON when REST is active
-      if (config.rest) return res.send(204);
+        // send JSON when REST is active
+        if (config.rest) return res.send(204);
 
-      // custom or built-in view
-      var view = cfg.views.loggedOut || join('get-logout');
+        // custom or built-in view
+        var view = cfg.views.loggedOut || join('get-logout');
 
-      // reder logout success template
-      res.render(view, {
-        title: 'Logout successful'
-      });
+        // reder logout success template
+        res.render(view, {
+          title: 'Logout successful'
+        });
 
+      }
     }
 
   }
