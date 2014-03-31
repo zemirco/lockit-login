@@ -11,9 +11,9 @@ var app = require('./app/app.js');
 var db = utls.getDatabase(config);
 var adapter = require(db.adapter)(config);
 var _app = app(config);
-    
+
 describe('# default config', function() {
-  
+
   before(function(done) {
     // create user 'john' - email not verified
     adapter.save('john', 'john@email.com', 'password', function(err, user) {
@@ -43,9 +43,9 @@ describe('# default config', function() {
           done();
         });
     });
-    
+
   });
-  
+
   describe('POST /login', function() {
 
     // simple wrapper for POSTing stuff again and again
@@ -199,9 +199,9 @@ describe('# default config', function() {
             });
         });
     });
-    
+
   });
-  
+
   describe('GET /logout', function() {
 
     var agent = superagent.agent();
@@ -246,13 +246,13 @@ describe('# default config', function() {
           done();
         });
     });
-    
+
   });
-  
+
   after(function(done) {
     adapter.remove('username', 'john', function(err, user) {
       adapter.remove('username', 'steve', done);
     });
   });
-  
+
 });

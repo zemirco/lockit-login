@@ -27,7 +27,7 @@ describe('# custom routes', function() {
       });
     });
   });
-  
+
   describe('GET /login', function() {
 
     it('should work with custom routes', function(done) {
@@ -39,9 +39,9 @@ describe('# custom routes', function() {
           done();
         });
     });
-    
+
   });
-  
+
   describe('POST /login', function() {
 
     it('should render an error message when login field is invalid', function(done) {
@@ -54,9 +54,9 @@ describe('# custom routes', function() {
           done();
         });
     });
-    
+
   });
-  
+
   describe('GET /logout', function() {
 
     var agent = superagent.agent();
@@ -75,7 +75,7 @@ describe('# custom routes', function() {
             });
         });
     });
-    
+
   });
 
   after(function(done) {
