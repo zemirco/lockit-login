@@ -34,4 +34,4 @@ exports.failedLoginAttempts = 5;
 exports.accountLockedTime = '5 seconds';
 
 // settings for test
-exports.db = 'http://127.0.0.1:5984/test';
+exports.db = 'http://127.0.0.1:5984/';
