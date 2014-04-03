@@ -250,8 +250,8 @@ describe('# default config', function() {
   });
 
   after(function(done) {
-    adapter.remove('username', 'john', function(err, user) {
-      adapter.remove('username', 'steve', done);
+    adapter.remove('john', function(err, user) {
+      adapter.remove('steve', done);
     });
   });
 

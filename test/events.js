@@ -136,7 +136,7 @@ describe('# event listeners', function() {
   });
 
   after(function(done) {
-    adapter.remove('username', 'event', done);
+    adapter.remove('event', done);
   });
 
 });

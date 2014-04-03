@@ -79,7 +79,7 @@ describe('# session store', function() {
   });
 
   after(function(done) {
-    adapter.remove('username', 'steve', done);
+    adapter.remove('steve', done);
   });
 
 });

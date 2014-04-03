@@ -79,7 +79,7 @@ describe('# custom routes', function() {
   });
 
   after(function(done) {
-    adapter.remove('username', 'routes', done);
+    adapter.remove('routes', done);
   });
 
 });

@@ -223,9 +223,9 @@ describe('# with REST enabled', function() {
 
   // remove user from db
   after(function(done) {
-    adapter.remove('username', 'beep', function() {
-      adapter.remove('username', 'boat', function() {
-        adapter.remove('username', 'bopp', done);
+    adapter.remove('beep', function() {
+      adapter.remove('boat', function() {
+        adapter.remove('bopp', done);
       });
     });
   });
