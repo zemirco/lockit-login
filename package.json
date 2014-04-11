@@ -22,10 +22,10 @@
     "logout"
   ],
   "dependencies": {
-    "bcrypt": "~0.7.7",
     "ms": "~0.6.2",
     "moment": "~2.4.0",
-    "lockit-utils": "0.1.1"
+    "lockit-utils": "0.2.0",
+    "couch-pwd": "0.0.1"
   },
   "devDependencies": {
     "supertest": "~0.8.2",
@@ -37,7 +37,7 @@
     "superagent": "~0.15.7",
     "jade": "~0.35.0",
     "express": "~3.4.7",
-    "lockit-couchdb-adapter": "0.3.0",
+    "lockit-couchdb-adapter": "0.4.0",
     "cookie": "~0.1.0"
   }
 }
