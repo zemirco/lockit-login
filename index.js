@@ -1,9 +1,9 @@
 
 var path = require('path');
-var bcrypt = require('bcrypt');
 var ms = require('ms');
 var moment = require('moment');
 var utils = require('lockit-utils');
+var pwd = require('couch-pwd');
 
 // require event emitter
 var events = require('events');
@@ -100,11 +100,11 @@ var Login = module.exports = function(app, config, adapter) {
       return;
     }
 
-    // check if login is a username or an email address
+    // check if login is a name or an email address
 
     // regexp from https://github.com/angular/angular.js/blob/master/src/ng/directive/input.js#L4
     var EMAIL_REGEXP = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,6}$/;
-    var query = EMAIL_REGEXP.test(login) ? 'email' : 'username';
+    var query = EMAIL_REGEXP.test(login) ? 'email' : 'name';
 
     // find user in db
     adapter.find(query, login, function(err, user) {
@@ -144,11 +144,14 @@ var Login = module.exports = function(app, config, adapter) {
         return;
       }
 
-      // compare hash with hash from db
-      bcrypt.compare(password, user.hash, function(err, valid) {
+      // if user comes from couchdb it has an 'iterations' key
+      if (user.iterations) pwd.iterations(user.iterations);
+
+      // compare credentials with data in db
+      pwd.hash(password, user.salt, function(err, hash) {
         if (err) console.log(err);
 
-        if (!valid) {
+        if (hash !== user.derived_key) {
           // set the default error message
           var errorMessage = 'Invalid user or password';
 
@@ -214,8 +217,8 @@ var Login = module.exports = function(app, config, adapter) {
           // reset the session
           delete req.session.redirectUrlAfterLogin;
 
-          // create session and save the username and email address
-          req.session.username = user.username;
+          // create session and save the name and email address
+          req.session.name = user.name;
           req.session.email = user.email;
 
           // emit 'login' event
@@ -243,7 +246,7 @@ var Login = module.exports = function(app, config, adapter) {
 
     // save values for event emitter
     var user = {
-      username: req.session.username,
+      name: req.session.name,
       email: req.session.email
     };
 
@@ -257,7 +260,7 @@ var Login = module.exports = function(app, config, adapter) {
 
     function done() {
       // clear local variables - they were set before the session was destroyed
-      res.locals.username = null;
+      res.locals.name = null;
       res.locals.email = null;
 
       // emit 'logout' event
