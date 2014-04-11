@@ -12,7 +12,7 @@ var db = utls.getDatabase(config);
 var adapter = require(db.adapter)(config);
 var _app = app(config);
 
-describe('# default config', function() {
+describe.only('# default config', function() {
 
   before(function(done) {
     // create user 'john' - email not verified
@@ -20,7 +20,7 @@ describe('# default config', function() {
       // add another dummy user and verify email
       adapter.save('steve', 'steve@email.com', 'password', function(err, user) {
         // verify email for steve
-        adapter.find('username', 'steve', function(err, user) {
+        adapter.find('name', 'steve', function(err, user) {
           user.emailVerified = true;
           // save updated user to db
           adapter.update(user, function(err, user) {
@@ -49,10 +49,10 @@ describe('# default config', function() {
   describe('POST /login', function() {
 
     // simple wrapper for POSTing stuff again and again
-    function postLogin(username, pass, cb) {
+    function postLogin(name, pass, cb) {
       request(_app)
         .post('/login')
-        .send({login: username, password: pass})
+        .send({login: name, password: pass})
         .end(cb);
     }
 
@@ -139,9 +139,9 @@ describe('# default config', function() {
       }, 5000);
     });
 
-    it('should allow login in with a username', function(done) {
+    it('should allow login in with a name', function(done) {
       // verify email address before making the request
-      adapter.find('username', 'john', function(err, user) {
+      adapter.find('name', 'john', function(err, user) {
         // verify email manually
         user.emailVerified = true;
         // save updated user to db
@@ -191,7 +191,7 @@ describe('# default config', function() {
           // now login
           agent
             .post(url + '/login')
-            .send({login:'john', password:'password'})
+            .send({login: 'john', password: 'password'})
             .end(function(err, res) {
               res.statusCode.should.equal(200);
               res.redirects.should.eql(['http://localhost:3000/test']);

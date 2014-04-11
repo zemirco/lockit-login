@@ -58,7 +58,7 @@ describe('# event listeners', function() {
     // create a user with verified email
     adapter.save('event', 'event@email.com', 'password', function() {
       // verify email for boat
-      adapter.find('username', 'event', function(err, user) {
+      adapter.find('name', 'event', function(err, user) {
         user.emailVerified = true;
         // save updated user to db
         adapter.update(user, done);
@@ -73,7 +73,7 @@ describe('# event listeners', function() {
 
     it('should emit a "login" event on success', function(done) {
       login.on('login', function(user, res, target) {
-        user.username.should.equal('event');
+        user.name.should.equal('event');
         user.email.should.equal('event@email.com');
         target.should.equal('/jep');
         done();
@@ -92,7 +92,7 @@ describe('# event listeners', function() {
 
     it('should emit a "logout" event on success', function(done) {
       login.on('logout', function(user, res) {
-        user.username.should.equal('event');
+        user.name.should.equal('event');
         user.email.should.equal('event@email.com');
         done();
       });

@@ -21,7 +21,7 @@ describe('# custom routes', function() {
 
   before(function(done) {
     adapter.save('routes', 'routes@email.com', 'password', function(err, user) {
-      adapter.find('username', 'routes', function(err, user) {
+      adapter.find('name', 'routes', function(err, user) {
         user.emailVerified = true;
         adapter.update(user, done);
       });

@@ -71,7 +71,7 @@ function start(config) {
 
   // restrict routes to logged in users
   function restrict(req, res, next) {
-    if (req.session.email && req.session.username) {
+    if (req.session.email && req.session.name) {
       next();
     } else {
       // redirect to login page but save url the user really wanted to visit

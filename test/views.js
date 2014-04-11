@@ -26,7 +26,7 @@ describe('# custom views', function() {
     // create test user
     adapter.save('alan', 'alan@email.com', 'password', function(err, user) {
       // verify email for steve
-      adapter.find('username', 'alan', function(err, user) {
+      adapter.find('name', 'alan', function(err, user) {
         user.emailVerified = true;
         // save updated user to db
         adapter.update(user, function(err, user) {

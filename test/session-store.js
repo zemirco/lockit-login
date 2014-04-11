@@ -21,7 +21,7 @@ describe('# session store', function() {
     // add dummy user and verify email
     adapter.save('steve', 'steve@email.com', 'password', function(err, user) {
       // verify email for steve
-      adapter.find('username', 'steve', function(err, user) {
+      adapter.find('name', 'steve', function(err, user) {
         user.emailVerified = true;
         // save updated user to db
         adapter.update(user, function(err, user) {

@@ -24,14 +24,14 @@ describe('# with REST enabled', function() {
       // create another user with verified email that does not interfere with login attempts
       adapter.save('boat', 'boat@email.com', 'password', function(err, user) {
         // verify email for boat
-        adapter.find('username', 'boat', function(err, user) {
+        adapter.find('name', 'boat', function(err, user) {
           user.emailVerified = true;
           // save updated user to db
           adapter.update(user, function(err, user) {
             // create another user with email verified
             adapter.save('beep', 'beep@email.com', 'password', function(err, user) {
               // verify email for beep
-              adapter.find('username', 'beep', function(err, user) {
+              adapter.find('name', 'beep', function(err, user) {
                 user.emailVerified = true;
                 // save updated user to db
                 adapter.update(user, function(err, user) {
@@ -177,7 +177,7 @@ describe('# with REST enabled', function() {
       }, 5000);
     });
 
-    it('should allow login in with a username', function(done) {
+    it('should allow login in with a name', function(done) {
       request(_app)
         .post('/rest/login')
         .send({login: 'beep', password: 'password'})
