@@ -9,24 +9,33 @@ Log in users to your Express app. The module is part of [Lockit](https://github.
 `npm install lockit-login`
 
 ```js
+var Login = require('lockit-login');
+var lockitUtils = require('lockit-utils');
 var config = require('./config.js');
-var login = require('lockit-login');
+
+var db = lockitUtils.getDatabase(config);
+var adapter = require(db.adapter)(config);
 
 var app = express();
 
 // express settings
 // ...
-
 // sessions are required - either cookie or some sort of db
-app.use(express.cookieParser('your secret here'));
-app.use(express.cookieSession());
-app.use(app.router);
+app.use(cookieParser());
+app.use(cookieSession({
+  secret: 'this is my super secret string'
+}));
 
-// use middleware after router so it doesn't interfere with your own routes
-login(app, config);
+// create new Login instance
+var login = new Login(config, adapter);
 
-// serve static files as last middleware
-app.use(express.static(path.join(__dirname, 'public')));
+// use login.router with your app
+app.use(login.router);
+
+// listen to events [optional]
+login.on('login', function(user, res, target) {
+  res.send('Welcome ' + user.name);
+})
 ```
 
 ## Configuration
@@ -50,7 +59,7 @@ More about configuration at [Lockit](https://github.com/zeMirco/lockit).
 
 ## REST API
 
-If you've set `exports.rest = true` in your `config.js` the module behaves as follows.
+If you've set `exports.rest` in your `config.js` the module behaves as follows.
 
  - all routes have `/rest` prepended
  - `GET /rest/login` is `next()`ed and you can catch `/login` on the client
