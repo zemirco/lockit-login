@@ -38,6 +38,13 @@
     "superagent": "~0.15.7",
     "jade": "~0.35.0",
     "lockit-couchdb-adapter": "0.4.1",
-    "cookie": "~0.1.0"
+    "cookie": "~0.1.0",
+    "static-favicon": "~1.0.0",
+    "cookie-parser": "~1.0.1",
+    "body-parser": "~1.0.0",
+    "express-session": "~1.0.2",
+    "cookie-session": "~1.0.1",
+    "errorhandler": "~1.0.0",
+    "csurf": "^1.1.0"
   }
 }
