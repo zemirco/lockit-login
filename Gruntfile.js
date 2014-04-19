@@ -16,7 +16,7 @@ module.exports = function(grunt) {
           reporter: 'spec',
           timeout: 10000
         },
-        src: ['test/*.js']
+        src: ['test/*.js', 'test/app/app_events.js']
       }
     }
   });
