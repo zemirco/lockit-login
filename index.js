@@ -1,13 +1,12 @@
 
 var path = require('path');
+var events = require('events');
+var util = require('util');
+var express = require('express');
 var ms = require('ms');
 var moment = require('moment');
 var utils = require('lockit-utils');
 var pwd = require('couch-pwd');
-
-// require event emitter
-var events = require('events');
-var util = require('util');
 
 /**
  * Internal helper functions
@@ -21,9 +20,12 @@ function join(view) {
  * Let's get serious
  */
 
-var Login = module.exports = function(app, config, adapter) {
+var Login = module.exports = function(config, adapter) {
 
-  if (!(this instanceof Login)) return new Login(app, config, adapter);
+  if (!(this instanceof Login)) return new Login(config, adapter);
+
+  // call super constructor function
+  events.EventEmitter.call(this);
 
   var that = this;
 
@@ -44,9 +46,11 @@ var Login = module.exports = function(app, config, adapter) {
    * Routes
    */
 
-  app.get(loginRoute, getLogin);
-  app.post(loginRoute, postLogin);
-  app.get(logoutRoute, utils.restrict(config), getLogout);
+  var router = express.Router();
+  router.get(loginRoute, getLogin);
+  router.post(loginRoute, postLogin);
+  router.get(logoutRoute, utils.restrict(config), getLogout);
+  this.router = router;
 
   /**
    * Route handlers
@@ -65,12 +69,13 @@ var Login = module.exports = function(app, config, adapter) {
 
     // render view
     res.render(view, {
-      title: 'Login'
+      title: 'Login',
+      basedir: req.app.get('views')
     });
   }
 
   // POST /login
-  function postLogin(req, res) {
+  function postLogin(req, res, next) {
 
     var error = '';
 
@@ -95,7 +100,8 @@ var Login = module.exports = function(app, config, adapter) {
       res.render(view, {
         title: 'Login',
         error: error,
-        login: login
+        login: login,
+        basedir: req.app.get('views')
       });
       return;
     }
@@ -108,7 +114,7 @@ var Login = module.exports = function(app, config, adapter) {
 
     // find user in db
     adapter.find(query, login, function(err, user) {
-      if (err) console.log(err);
+      if (err) return next(err);
 
       // no user or user email isn't verified yet -> render error message
       if (!user || !user.emailVerified) {
@@ -122,7 +128,8 @@ var Login = module.exports = function(app, config, adapter) {
         res.render(view, {
           title: 'Login',
           error: error,
-          login: login
+          login: login,
+          basedir: req.app.get('views')
         });
         return;
       }
@@ -139,7 +146,8 @@ var Login = module.exports = function(app, config, adapter) {
         res.render(view, {
           title: 'Login',
           error: error,
-          login: login
+          login: login,
+          basedir: req.app.get('views')
         });
         return;
       }
@@ -149,7 +157,7 @@ var Login = module.exports = function(app, config, adapter) {
 
       // compare credentials with data in db
       pwd.hash(password, user.salt, function(err, hash) {
-        if (err) console.log(err);
+        if (err) return next(err);
 
         if (hash !== user.derived_key) {
           // set the default error message
@@ -174,7 +182,7 @@ var Login = module.exports = function(app, config, adapter) {
 
           // save user to db
           adapter.update(user, function(err, user) {
-            if (err) console.log(err);
+            if (err) return next(err);
 
             // send only JSON when REST is active
             if (config.rest) return res.json(403, {error: errorMessage});
@@ -184,7 +192,8 @@ var Login = module.exports = function(app, config, adapter) {
             res.render(view, {
               title: 'Login',
               error: errorMessage,
-              login: login
+              login: login,
+              basedir: req.app.get('views')
             });
           });
 
@@ -212,7 +221,7 @@ var Login = module.exports = function(app, config, adapter) {
 
         // save user to db
         adapter.update(user, function(err, user) {
-          if (err) console.log(err);
+          if (err) return next(err);
 
           // reset the session
           delete req.session.redirectUrlAfterLogin;
@@ -242,7 +251,7 @@ var Login = module.exports = function(app, config, adapter) {
 
   // GET /logout
   // GET /rest/logout when REST is active
-  function getLogout(req, res) {
+  function getLogout(req, res, next) {
 
     // save values for event emitter
     var user = {
@@ -277,15 +286,14 @@ var Login = module.exports = function(app, config, adapter) {
 
         // reder logout success template
         res.render(view, {
-          title: 'Logout successful'
+          title: 'Logout successful',
+          basedir: req.app.get('views')
         });
 
       }
     }
 
   }
-
-  events.EventEmitter.call(this);
 
 };
 
