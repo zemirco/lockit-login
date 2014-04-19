@@ -12,7 +12,7 @@ var db = utls.getDatabase(config);
 var adapter = require(db.adapter)(config);
 var _app = app(config);
 
-describe.only('# default config', function() {
+describe('# default config', function() {
 
   before(function(done) {
     // create user 'john' - email not verified
