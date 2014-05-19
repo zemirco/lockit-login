@@ -65,14 +65,17 @@ util.inherits(Login, events.EventEmitter);
  * @param {Function} next
  */
 Login.prototype.getLogin = function(req, res, next) {
+
+  var config = this.config;
+
   // do not handle the route when REST is active
-  if (this.config.rest) return next();
+  if (config.rest) return next();
 
   // save redirect url in session
   req.session.redirectUrlAfterLogin = req.query.redirect;
 
   // custom or built-in view
-  var view = this.config.login.views.login || join('get-login');
+  var view = config.login.views.login || join('get-login');
 
   // render view
   res.render(view, {
@@ -281,6 +284,7 @@ Login.prototype.postLogin = function(req, res, next) {
  */
 Login.prototype.getLogout = function(req, res, next) {
 
+  var config = this.config;
   var that = this;
 
   // save values for event emitter
@@ -298,13 +302,13 @@ Login.prototype.getLogout = function(req, res, next) {
     that.emit('logout', user, res);
 
     // let lockit handle the response
-    if (that.config.login.handleResponse) {
+    if (config.login.handleResponse) {
 
       // send JSON when REST is active
-      if (that.config.rest) return res.send(204);
+      if (config.rest) return res.send(204);
 
       // custom or built-in view
-      var view = that.config.login.views.loggedOut || join('get-logout');
+      var view = config.login.views.loggedOut || join('get-logout');
 
       // reder logout success template
       res.render(view, {
