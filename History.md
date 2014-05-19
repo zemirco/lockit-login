@@ -1,4 +1,10 @@
 
+##### 1.0.1 - 2014-05-19
+
+- use `req.session.loggedIn` to `true` on login
+- code refactoring
+- update dependencies
+
 ##### 1.0.0 - 2014-04-19
 
 - requires Express 4.x
