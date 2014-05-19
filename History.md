@@ -1,7 +1,7 @@
 
 ##### 1.0.1 - 2014-05-19
 
-- use `req.session.loggedIn` to `true` on login
+- set `req.session.loggedIn` to `true` on login
 - code refactoring
 - update dependencies
 
