@@ -229,6 +229,7 @@ var Login = module.exports = function(config, adapter) {
           // create session and save the name and email address
           req.session.name = user.name;
           req.session.email = user.email;
+          req.session.loggedIn = true;
 
           // emit 'login' event
           that.emit('login', user, res, target);
