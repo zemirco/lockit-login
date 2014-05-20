@@ -211,6 +211,14 @@ describe('# default config', function() {
         });
     });
 
+    it.skip('should not allow login when two-factor auth is enabled', function(done) {
+      done();
+    });
+
+    it.skip('should redirect to two-factor auth view when two-factor auth is enabled', function(done) {
+      done();
+    });
+
   });
 
   describe('POST /login/two-factor', function() {
@@ -243,7 +251,7 @@ describe('# default config', function() {
         });
     });
 
-    it.skip('should redirect to index page when token is valid', function(done) {
+    it.skip('should log in a user when token is valid', function(done) {
       done();
     });
 
