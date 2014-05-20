@@ -304,7 +304,10 @@ Login.prototype.postTwoFactor = function(req, res, next) {
       error: error
     });
 
-    // todo: where does view come from
+    // custom or built-in view
+    var view = config.login.views.twoFactor || join('two-factor');
+
+    // render two-factor template
     return res.render(view, {
       title: 'Two-factor authentication',
       action: twoFactorRoute,
