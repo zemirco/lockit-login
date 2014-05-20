@@ -45,9 +45,13 @@ var Login = module.exports = function(config, adapter) {
     logoutRoute = '/rest' + logoutRoute;
   }
 
+  // two-factor authentication route
+  var twoFactorRoute = loginRoute + (config.login.twoFactorRoute || '/two-factor');
+
   var router = express.Router();
   router.get(loginRoute, this.getLogin.bind(this));
   router.post(loginRoute, this.postLogin.bind(this));
+  router.post(twoFactorRoute, this.postTwoFactor.bind(this));
   router.get(logoutRoute, utils.restrict(config), this.getLogout.bind(this));
   this.router = router;
 
@@ -271,6 +275,21 @@ Login.prototype.postLogin = function(req, res, next) {
 
   });
 
+};
+
+
+
+/**
+ * POST /login/two-factor.
+ *
+ * Verify provided token using time-based one-time password.
+ *
+ * @param {Object} req
+ * @param {Object} res
+ * @param {Function} next
+ */
+Login.prototype.postTwoFactor = function(req, res, next) {
+  
 };
 
 
