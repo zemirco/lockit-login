@@ -249,25 +249,47 @@ Login.prototype.postLogin = function(req, res, next) {
       adapter.update(user, function(err, user) {
         if (err) return next(err);
 
-        // reset the session
-        delete req.session.redirectUrlAfterLogin;
-
         // create session and save the name and email address
         req.session.name = user.name;
         req.session.email = user.email;
-        req.session.loggedIn = true;
 
-        // emit 'login' event
-        that.emit('login', user, res, target);
+        // check if two-factor authentication is enabled
+        if (!user.twoFactorEnabled) {
+          // reset the session
+          delete req.session.redirectUrlAfterLogin;
 
-        // let lockit handle the response
-        if (config.login.handleResponse) {
-          // send only JSON when REST is active
-          if (config.rest) return res.send(204);
+          // user is now logged in
+          req.session.loggedIn = true;
 
-          // redirect to target url
-          res.redirect(target);
+          // emit 'login' event
+          that.emit('login', user, res, target);
+
+          // let lockit handle the response
+          if (config.login.handleResponse) {
+            // send only JSON when REST is active
+            if (config.rest) return res.send(204);
+
+            // redirect to target url
+            res.redirect(target);
+          }
         }
+
+        // two-factor authentication is enabled
+
+        // send only JSON when REST is active
+        if (config.rest) return res.json({
+          twoFactorEnabled: true
+        });
+
+        // custom or built-in view
+        var view = config.login.views.twoFactor || join('two-factor');
+
+        // render two-factor authentication template
+        res.render(view, {
+          title: 'Two-factor authentication',
+          action: this.twoFactorRoute,
+          basedir: req.app.get('views')
+        });
 
       });
 
