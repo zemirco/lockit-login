@@ -24,7 +24,18 @@ describe('# default config', function() {
           user.emailVerified = true;
           // save updated user to db
           adapter.update(user, function(err, user) {
-            done();
+            // create another user for two factor auth
+            adapter.save('tf', 'tf@email.com', 'twofactor', function(err, user) {
+              // verify email and enable two-factor auth for tf
+              adapter.find('name', 'tf', function(err, user) {
+                user.emailVerified = true;
+                user.twoFactorEnabled = true;
+                // save updated user to db
+                adapter.update(user, function(err, user) {
+                  done();
+                });
+              });
+            });
           });
         });
       });
@@ -202,6 +213,42 @@ describe('# default config', function() {
 
   });
 
+  describe('POST /login/two-factor', function() {
+
+    it('should return an error when token is empty', function(done) {
+      request(_app)
+        .post('/login/two-factor')
+        .send({token: ''})
+        .end(function(err, res) {
+          res.text.should.include('Please enter a token');
+          done();
+        });
+    });
+
+    it('should redirect to /login route when token is invalid', function(done) {
+      var agent = superagent.agent();
+      // login
+      agent
+        .post(config.url + '/login')
+        .send({login:'tf', password:'twofactor'})
+        .end(function(err, res) {
+          // enter invalid token
+          agent
+            .post(config.url + '/login/two-factor')
+            .send({token: '123456'})
+            .end(function(err, res) {
+              res.redirects.should.eql(['http://localhost:3000/login?redirect=/']);
+              done();
+            });
+        });
+    });
+
+    it.skip('should redirect to index page when token is valid', function(done) {
+      done();
+    });
+
+  });
+
   describe('GET /logout', function() {
 
     var agent = superagent.agent();
@@ -250,8 +297,10 @@ describe('# default config', function() {
   });
 
   after(function(done) {
-    adapter.remove('john', function(err, user) {
-      adapter.remove('steve', done);
+    adapter.remove('john', function() {
+      adapter.remove('steve', function() {
+        adapter.remove('tf', done);
+      });
     });
   });
 
