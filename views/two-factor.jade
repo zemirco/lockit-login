@@ -1,0 +1,17 @@
+extend /layout
+
+block content
+  div.panel.panel-default
+    div.panel-heading Login
+    div.panel-body
+      form(action="/login", method="POST")
+        input(type="hidden", name="_csrf", value=_csrf)
+        div.form-group
+          label(for="login") Email or Username
+          input.form-control(type="text", id="login", name="login", placeholder="Your email or username", value=login)
+        div.form-group
+          label(for="password") Password
+          input.form-control(type="password", id="password", name="password", placeholder="Your password")
+        if error
+          div.alert.alert-warning #{error}
+        input(type="submit", class="btn btn-primary", value="Login")
