@@ -46,7 +46,7 @@ var Login = module.exports = function(config, adapter) {
   }
 
   // two-factor authentication route
-  var twoFactorRoute = loginRoute + (config.login.twoFactorRoute || '/two-factor');
+  this.twoFactorRoute = loginRoute + (config.login.twoFactorRoute || '/two-factor');
 
   var router = express.Router();
   router.get(loginRoute, this.getLogin.bind(this));
@@ -289,7 +289,78 @@ Login.prototype.postLogin = function(req, res, next) {
  * @param {Function} next
  */
 Login.prototype.postTwoFactor = function(req, res, next) {
-  
+
+  var config = this.config;
+  var adapter = this.adapter;
+  var twoFactorRoute = this.twoFactorRoute;
+  var that = this;
+  var token = req.body.token;
+
+  // token is empty string ''
+  if (!token) {
+    var error = 'Please enter a token';
+
+    if (config.rest) return res.json(403, {
+      error: error
+    });
+
+    // todo: where does view come from
+    return res.render(view, {
+      title: 'Two-factor authentication',
+      action: twoFactorRoute,
+      basedir: req.app.get('views'),
+      error: error
+    });
+  }
+
+  // user has entered some token
+
+  var email = req.session.email;
+  var target = req.session.redirectUrlAfterLogin || '/';
+
+  // get user from db
+  adapter.find('email', email, function(err, user) {
+    if (err) return next(err);
+
+    var key = user.twoFactorKey;
+
+    // verify POSTed token
+    var valid = utils.verify(token, key);
+
+    // redirect to /login if invalid
+    if (!valid) {
+
+      // destroy current session
+      return utils.destroy(req, function() {
+        // send only JSON when REST is active
+        if (config.rest) return res.send(401);
+        res.redirect(loginRoute + '?redirect=' + target);
+      });
+
+    }
+
+    // token seems to be fine
+
+    // reset the session
+    delete req.session.redirectUrlAfterLogin;
+
+    // user is now logged in
+    req.session.loggedIn = true;
+
+    // emit 'login' event
+    that.emit('login', user, res, target);
+
+    // let lockit handle the response
+    if (config.login.handleResponse) {
+      // send only JSON when REST is active
+      if (config.rest) return res.send(204);
+
+      // redirect to target url
+      res.redirect(target);
+    }
+
+  });
+
 };
 
 
