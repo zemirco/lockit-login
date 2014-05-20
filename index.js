@@ -36,22 +36,22 @@ var Login = module.exports = function(config, adapter) {
   this.adapter = adapter;
 
   // set default routes
-  var loginRoute = config.login.route || '/login';
+  this.loginRoute = config.login.route || '/login';
   var logoutRoute = config.login.logoutRoute || '/logout';
 
   // change URLs if REST is active
   if (config.rest) {
-    loginRoute = '/rest' + loginRoute;
+    this.loginRoute = '/rest' + this.loginRoute;
     logoutRoute = '/rest' + logoutRoute;
   }
 
   // two-factor authentication route
-  this.twoFactorRoute = loginRoute + (config.login.twoFactorRoute || '/two-factor');
+  this.twoFactorRoute = this.loginRoute + (config.login.twoFactorRoute || '/two-factor');
 
   var router = express.Router();
-  router.get(loginRoute, this.getLogin.bind(this));
-  router.post(loginRoute, this.postLogin.bind(this));
-  router.post(twoFactorRoute, this.postTwoFactor.bind(this));
+  router.get(this.loginRoute, this.getLogin.bind(this));
+  router.post(this.loginRoute, this.postLogin.bind(this));
+  router.post(this.twoFactorRoute, this.postTwoFactor.bind(this));
   router.get(logoutRoute, utils.restrict(config), this.getLogout.bind(this));
   this.router = router;
 
@@ -293,10 +293,11 @@ Login.prototype.postTwoFactor = function(req, res, next) {
   var config = this.config;
   var adapter = this.adapter;
   var twoFactorRoute = this.twoFactorRoute;
+  var loginRoute = this.loginRoute;
   var that = this;
   var token = req.body.token;
 
-  // token is empty string ''
+  // token is empty string
   if (!token) {
     var error = 'Please enter a token';
 
@@ -308,6 +309,7 @@ Login.prototype.postTwoFactor = function(req, res, next) {
     var view = config.login.views.twoFactor || join('two-factor');
 
     // render two-factor template
+    res.status(403);
     return res.render(view, {
       title: 'Two-factor authentication',
       action: twoFactorRoute,
