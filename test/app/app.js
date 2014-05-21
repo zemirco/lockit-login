@@ -15,7 +15,7 @@ var routes = require('./routes');
 var user = require('./routes/user');
 var http = require('http');
 var path = require('path');
-var lockitUtils = require('lockit-utils');
+var utils = require('lockit-utils');
 var Login = require('../../index.js');
 
 function start(config) {
@@ -63,9 +63,11 @@ function start(config) {
     });
   }
 
-  var db = lockitUtils.getDatabase(config);
+  var db = utils.getDatabase(config);
   var adapter = require(db.adapter)(config);
   var login = new Login(config, adapter);
+
+
 
   app.use(login.router);
 
@@ -77,21 +79,9 @@ function start(config) {
   app.get('/', routes.index);
   app.get('/users', user.list);
 
-  // restrict routes to logged in users
-  function restrict(req, res, next) {
-    if (req.session.email && req.session.name) {
-      next();
-    } else {
-      // redirect to login page but save url the user really wanted to visit
-      var url = req.url;
-      // save original url to session
-      req.session.redirectUrlAfterLogin = url;
-      res.redirect('/login');
-    }
-  }
 
   // dummy route for testing redirection after login
-  app.get('/test', restrict, function(req, res) {
+  app.get('/test', utils.restrict(config), function(req, res) {
     res.send('well done');
   });
 
