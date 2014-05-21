@@ -174,7 +174,7 @@ describe('# with REST enabled', function() {
             res.statusCode.should.equal(204);
             done();
           });
-      }, 5000);
+      }, 2000);
     });
 
     it('should allow login in with a name', function(done) {
@@ -195,6 +195,25 @@ describe('# with REST enabled', function() {
           res.statusCode.should.equal(204);
           done();
         });
+    });
+
+    it.skip('should send a notice when two-factor auth is enabled', function(done) {
+
+    });
+
+    it.skip('should not allow login when two-factor auth is enabled', function(done) {
+
+    });
+
+  });
+
+  describe('POST /login/two-factor', function() {
+
+    it.skip('should send an error when token is invalid', function(done) {
+
+    });
+
+    it.skip('should send a success message when token is valid', function(done) {
     });
 
   });
