@@ -2,13 +2,13 @@
 var request = require('supertest');
 var should = require('should');
 var superagent = require('superagent');
-var utls = require('lockit-utils');
-var cookie = require('cookie');
+var utils = require('lockit-utils');
+var totp = require('notp').totp;
 
 var config = require('./app/config.js');
 var app = require('./app/app.js');
 
-var db = utls.getDatabase(config);
+var db = utils.getDatabase(config);
 var adapter = require(db.adapter)(config);
 var _app = app(config);
 
@@ -147,7 +147,7 @@ describe('# default config', function() {
           res.text.should.include('Invalid user or password');
           done();
         });
-      }, 5000);
+      }, 2000);
     });
 
     it('should allow login in with a name', function(done) {
@@ -189,57 +189,58 @@ describe('# default config', function() {
     });
 
     it('should redirect to the originally requested page', function(done) {
-      // use superagent for persistent sessions
-      var url = config.url;
-      var agent = superagent.agent();
-      // request our /test page which is restricted - redirection is a bit different for superagent
-      agent
-        .get(url + '/test')
+      request(_app)
+        .post('/login?redirect=/test')
+        .send({login: 'john', password: 'password'})
         .end(function(err, res) {
-          // test for proper redirection
-          res.statusCode.should.equal(200);
-          res.redirects.should.eql(['http://localhost:3000/login']);
-          // now login
-          agent
-            .post(url + '/login')
-            .send({login: 'john', password: 'password'})
-            .end(function(err, res) {
-              res.statusCode.should.equal(200);
-              res.redirects.should.eql(['http://localhost:3000/test']);
-              done();
-            });
+          res.statusCode.should.equal(302);
+          res.header.location.should.include('/test');
+          done();
         });
     });
 
-    it.skip('should not allow login when two-factor auth is enabled', function(done) {
-      done();
+    it('should render two-factor auth view when two-factor auth is enabled', function(done) {
+      var agent = superagent.agent();
+      agent
+        .post(config.url + '/login')
+        .send({login: 'tf', password: 'twofactor'})
+        .end(function(err, res) {
+          res.text.should.include('Two-Factor Authentication');
+          done();
+        });
     });
 
-    it.skip('should redirect to two-factor auth view when two-factor auth is enabled', function(done) {
-      done();
+    it('should not allow login when two-factor auth is enabled', function(done) {
+      var agent = superagent.agent();
+      // login
+      agent
+        .post(config.url + '/login')
+        .send({login: 'tf', password: 'twofactor'})
+        .end(function(err, res) {
+          // try to access private page
+          agent
+            .get(config.url + '/test')
+            .end(function(err, res) {
+              res.statusCode.should.equal(200);
+              res.redirects.should.eql(['http://localhost:3000/login?redirect=/test']);
+              done();
+            });
+        });
     });
 
   });
 
   describe('POST /login/two-factor', function() {
 
-    it('should return an error when token is empty', function(done) {
-      request(_app)
-        .post('/login/two-factor')
-        .send({token: ''})
-        .end(function(err, res) {
-          res.text.should.include('Please enter a token');
-          done();
-        });
-    });
-
     it('should redirect to /login route when token is invalid', function(done) {
       var agent = superagent.agent();
       // login
       agent
         .post(config.url + '/login')
-        .send({login:'tf', password:'twofactor'})
+        .send({login: 'tf', password: 'twofactor'})
         .end(function(err, res) {
+          res.text.should.include('Two-Factor Authentication');
+          agent.saveCookies(res);
           // enter invalid token
           agent
             .post(config.url + '/login/two-factor')
@@ -251,8 +252,39 @@ describe('# default config', function() {
         });
     });
 
-    it.skip('should log in a user when token is valid', function(done) {
-      done();
+    it('should log in a user when token is valid', function(done) {
+      var agent = superagent.agent();
+      // generate random key for test user and save to db
+      var key = 'acbd1234';
+      adapter.find('name', 'tf', function(err, user) {
+        user.twoFactorKey = key;
+        adapter.update(user, function(err, user) {
+          // login
+          agent
+            .post(config.url + '/login')
+            .send({login: 'tf', password: 'twofactor'})
+            .end(function(err, res) {
+              res.text.should.include('Two-Factor Authentication');
+              agent.saveCookies(res);
+              var token = totp.gen(key, {});
+              // use two-factor authentication
+              agent
+                .post(config.url + '/login/two-factor')
+                .send({token: token})
+                .end(function(err, res) {
+                  res.redirects.should.eql(['http://localhost:3000/']);
+                  // now access private page
+                  agent
+                    .get(config.url + '/test')
+                    .end(function(err, res) {
+                      res.statusCode.should.equal(200);
+                      res.text.should.include('well done');
+                      done();
+                    });
+                });
+            });
+        });
+      });
     });
 
   });
@@ -297,7 +329,7 @@ describe('# default config', function() {
         .get(config.url + '/test')
         .end(function(err, res) {
           res.statusCode.should.equal(200);
-          res.redirects.should.eql(['http://localhost:3000/login']);
+          res.redirects.should.eql(['http://localhost:3000/login?redirect=/test']);
           done();
         });
     });
