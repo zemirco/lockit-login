@@ -7,7 +7,9 @@ var superagent = require('superagent');
 var cookieParser = require('cookie-parser');
 var cookieSession = require('cookie-session');
 var should = require('should');
-var utls = require('lockit-utils');
+var utils = require('lockit-utils');
+var routes = require('./routes');
+var user = require('./routes/user');
 
 var config = require('./config.js');
 var Login = require('../../');
@@ -23,17 +25,12 @@ app.use(cookieParser());
 app.use(cookieSession({
   secret: 'this is my super secret string'
 }));
-app.use(function(req, res, next) {
-  req.session.redirectUrlAfterLogin = '/jep';
-  next();
-});
 app.use(express.static(path.join(__dirname, 'public')));
-app.get('/jep', function(req, res) {
-  res.send(200);
-});
-var db = utls.getDatabase(config);
+var db = utils.getDatabase(config);
 var adapter = require(db.adapter)(config);
 var login = new Login(config, adapter);
+app.get('/', routes.index);
+app.get('/users', user.list);
 app.use(login.router);
 http.createServer(app).listen(app.get('port'));
 
@@ -53,6 +50,8 @@ app_two.use(cookieSession({
 }));
 app_two.use(express.static(path.join(__dirname, 'public')));
 var login_two = new Login(config_two, adapter);
+app_two.get('/', routes.index);
+app_two.get('/users', user.list);
 app_two.use(login_two.router);
 http.createServer(app_two).listen(app_two.get('port'));
 
@@ -79,7 +78,7 @@ describe('# event listeners', function() {
       login.on('login', function(user, res, target) {
         user.name.should.equal('event');
         user.email.should.equal('event@email.com');
-        target.should.equal('/jep');
+        target.should.equal('/');
         done();
       });
       agent
@@ -88,6 +87,18 @@ describe('# event listeners', function() {
         .end(function(err, res) {
           res.statusCode.should.equal(200);
         });
+    });
+
+    it.skip('should not emit a "login" event when two-factor auth is enabled', function(done) {
+
+    });
+
+  });
+
+  describe.skip('POST /login/two-factor', function() {
+
+    it('should emit a "login" event when two-factor auth is enabled', function(done) {
+
     });
 
   });
@@ -102,7 +113,9 @@ describe('# event listeners', function() {
       });
       agent
         .get('http://localhost:6500/logout')
-        .end(function(err, res) {});
+        .end(function(err, res) {
+          res.statusCode.should.equal(200);
+        });
     });
 
   });
