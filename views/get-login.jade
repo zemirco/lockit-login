@@ -4,7 +4,7 @@ block content
   div.panel.panel-default
     div.panel-heading Login
     div.panel-body
-      form(action="/login", method="POST")
+      form(action=action, method="POST")
         input(type="hidden", name="_csrf", value=_csrf)
         div.form-group
           label(for="login") Email or Username
