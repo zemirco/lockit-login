@@ -71,12 +71,13 @@ util.inherits(Login, events.EventEmitter);
 Login.prototype.getLogin = function(req, res, next) {
 
   var config = this.config;
+  var that = this;
 
   // do not handle the route when REST is active
   if (config.rest) return next();
 
-  // save redirect url in session
-  req.session.redirectUrlAfterLogin = req.query.redirect;
+  // save redirect url
+  var suffix = req.query.redirect ? '?redirect=' + req.query.redirect : '';
 
   // custom or built-in view
   var view = config.login.views.login || join('get-login');
@@ -84,6 +85,7 @@ Login.prototype.getLogin = function(req, res, next) {
   // render view
   res.render(view, {
     title: 'Login',
+    action: that.loginRoute + suffix,
     basedir: req.app.get('views')
   });
 };
@@ -105,11 +107,11 @@ Login.prototype.postLogin = function(req, res, next) {
 
   var error = '';
 
-  // session might include a url which the user requested before login
-  var target = req.session.redirectUrlAfterLogin || '/';
-
   var login = req.body.login;
   var password = req.body.password;
+
+  // save redirect url
+  var suffix = req.query.redirect ? '?redirect=' + req.query.redirect : '';
 
   // custom or built-in view
   var view = config.login.views.login || join('get-login');
@@ -125,6 +127,7 @@ Login.prototype.postLogin = function(req, res, next) {
     res.status(403);
     res.render(view, {
       title: 'Login',
+      action: that.loginRoute + suffix,
       error: error,
       login: login,
       basedir: req.app.get('views')
@@ -153,6 +156,7 @@ Login.prototype.postLogin = function(req, res, next) {
       res.status(403);
       res.render(view, {
         title: 'Login',
+        action: that.loginRoute + suffix,
         error: error,
         login: login,
         basedir: req.app.get('views')
@@ -171,6 +175,7 @@ Login.prototype.postLogin = function(req, res, next) {
       res.status(403);
       res.render(view, {
         title: 'Login',
+        action: that.loginRoute + suffix,
         error: error,
         login: login,
         basedir: req.app.get('views')
@@ -217,6 +222,7 @@ Login.prototype.postLogin = function(req, res, next) {
           res.status(403);
           res.render(view, {
             title: 'Login',
+            action: that.loginRoute + suffix,
             error: errorMessage,
             login: login,
             basedir: req.app.get('views')
@@ -255,8 +261,9 @@ Login.prototype.postLogin = function(req, res, next) {
 
         // check if two-factor authentication is enabled
         if (!user.twoFactorEnabled) {
-          // reset the session
-          delete req.session.redirectUrlAfterLogin;
+
+          // get redirect url
+          var target = req.query.redirect || '/';
 
           // user is now logged in
           req.session.loggedIn = true;
@@ -288,7 +295,7 @@ Login.prototype.postLogin = function(req, res, next) {
         // render two-factor authentication template
         res.render(view, {
           title: 'Two-factor authentication',
-          action: this.twoFactorRoute,
+          action: that.twoFactorRoute,
           basedir: req.app.get('views')
         });
 
@@ -315,36 +322,14 @@ Login.prototype.postTwoFactor = function(req, res, next) {
 
   var config = this.config;
   var adapter = this.adapter;
-  var twoFactorRoute = this.twoFactorRoute;
   var loginRoute = this.loginRoute;
   var that = this;
-  var token = req.body.token;
 
-  // token is empty string
-  if (!token) {
-    var error = 'Please enter a token';
-
-    if (config.rest) return res.json(403, {
-      error: error
-    });
-
-    // custom or built-in view
-    var view = config.login.views.twoFactor || join('two-factor');
-
-    // render two-factor template
-    res.status(403);
-    return res.render(view, {
-      title: 'Two-factor authentication',
-      action: twoFactorRoute,
-      basedir: req.app.get('views'),
-      error: error
-    });
-  }
-
-  // user has entered some token
-
+  var token = req.body.token || '';
   var email = req.session.email;
-  var target = req.session.redirectUrlAfterLogin || '/';
+
+  // get redirect url
+  var target = req.query.redirect || '/';
 
   // get user from db
   adapter.find('email', email, function(err, user) {
@@ -357,20 +342,15 @@ Login.prototype.postTwoFactor = function(req, res, next) {
 
     // redirect to /login if invalid
     if (!valid) {
-
       // destroy current session
       return utils.destroy(req, function() {
         // send only JSON when REST is active
         if (config.rest) return res.send(401);
         res.redirect(loginRoute + '?redirect=' + target);
       });
-
     }
 
     // token seems to be fine
-
-    // reset the session
-    delete req.session.redirectUrlAfterLogin;
 
     // user is now logged in
     req.session.loggedIn = true;
@@ -411,7 +391,8 @@ Login.prototype.getLogout = function(req, res, next) {
     email: req.session.email
   };
 
-  var done = function() {
+  // destroy the session
+  utils.destroy(req, function() {
     // clear local variables - they were set before the session was destroyed
     res.locals.name = null;
     res.locals.email = null;
@@ -435,14 +416,6 @@ Login.prototype.getLogout = function(req, res, next) {
       });
 
     }
-  };
-
-  // destroy the session
-  if (req.sessionStore) {
-    req.session.destroy(done);
-  } else {
-    req.session = null;
-    done();
-  }
+  });
 
 };
