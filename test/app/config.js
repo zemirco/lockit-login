@@ -30,8 +30,8 @@ exports.signup = {
 exports.failedLoginsWarning = 3;
 exports.failedLoginAttempts = 5;
 
-// set to 5 seconds for testing
-exports.accountLockedTime = '5 seconds';
+// set to 2 seconds for testing
+exports.accountLockedTime = '2 seconds';
 
 // settings for test
 exports.db = 'http://127.0.0.1:5984/';
