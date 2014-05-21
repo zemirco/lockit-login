@@ -10,10 +10,10 @@ Log in users to your Express app. The module is part of [Lockit](https://github.
 
 ```js
 var Login = require('lockit-login');
-var lockitUtils = require('lockit-utils');
+var utils = require('lockit-utils');
 var config = require('./config.js');
 
-var db = lockitUtils.getDatabase(config);
+var db = utils.getDatabase(config);
 var adapter = require(db.adapter)(config);
 
 var app = express();
@@ -55,6 +55,7 @@ More about configuration at [Lockit](https://github.com/zemirco/lockit).
 
  - GET /login
  - POST /login
+ - POST /login/two-factor
  - GET /logout
 
 ## REST API
