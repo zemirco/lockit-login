@@ -17,7 +17,22 @@ var _app = app(_config);
 
 describe('# csrf', function() {
 
-  it('should include the csrf token in the view', function(done) {
+  before(function(done) {
+    // create test user
+    adapter.save('csrf', 'csrf@email.com', 'password', function(err, user) {
+      // verify email for csrf
+      adapter.find('name', 'csrf', function(err, user) {
+        user.emailVerified = true;
+        user.twoFactorEnabled = true;
+        // save updated user to db
+        adapter.update(user, function(err, user) {
+          done();
+        });
+      });
+    });
+  });
+
+  it('should include csrf token in "get-login" view', function(done) {
     request(_app)
       .get('/login')
       .end(function(err, res) {
@@ -27,6 +42,31 @@ describe('# csrf', function() {
         res.statusCode.should.equal(200);
         done();
       });
+  });
+
+  it('should include csrf token in "two-factor" view', function(done) {
+    var agent = request.agent('http://localhost:6000');
+    agent
+      .get('/login')
+      .end(function(err, res) {
+        var cookies = cookie.parse(res.headers['set-cookie'][0]);
+        var token = cookies.csrf;
+        // give agent some time to put cookies from suitcase to store
+        process.nextTick(function() {
+          agent
+            .post('/login')
+            .set('x-csrf-token', token)
+            .send({login: 'csrf', password: 'password'})
+            .end(function(err, res) {
+              res.statusCode.should.equal(200);
+              done();
+            });
+        });
+      });
+  });
+
+  after(function(done) {
+    adapter.remove('csrf', done);
   });
 
 });
