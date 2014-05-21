@@ -71,7 +71,7 @@ describe('# session store', function() {
         .get(_config.url + '/test')
         .end(function(err, res) {
           res.statusCode.should.equal(200);
-          res.redirects.should.eql(['http://localhost:3500/login']);
+          res.redirects.should.eql(['http://localhost:3500/login?redirect=/test']);
           done();
         });
     });
