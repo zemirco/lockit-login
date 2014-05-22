@@ -1,4 +1,12 @@
 
+##### 1.1.0 / 2014-05-22
+
+- add two-factor authentication
+- add custom two-factor route via `config.login.twoFactorRoute`
+- use `req.query.redirect` instead of adding redirect target to session
+- make `action` in `get-login.jade` configurable
+- use `util.destroy` helper method for logout
+
 ##### 1.0.1 / 2014-05-19
 
 - set `req.session.loggedIn` to `true` on login
