@@ -15,7 +15,8 @@ var _config = JSON.parse(JSON.stringify(config));
 _config.port = 4000;
 _config.login.views = {
   login: 'custom/login',
-  loggedOut: 'custom/loggedOut'
+  loggedOut: 'custom/loggedOut',
+  twoFactor: 'custom/auth'
 };
 
 var _app = app(_config);
@@ -30,7 +31,18 @@ describe('# custom views', function() {
         user.emailVerified = true;
         // save updated user to db
         adapter.update(user, function(err, user) {
-          done();
+          // add user to test two-factor auth view
+          adapter.save('buffy', 'buffy@email.com', 'password', function(err, user) {
+            // verify email for buffy and activate two-factor auth
+            adapter.find('name', 'buffy', function(err, user) {
+              user.emailVerified = true;
+              user.twoFactorEnabled = true;
+              // save updated user to db
+              adapter.update(user, function(err, user) {
+                done();
+              });
+            });
+          });
         });
       });
     });
@@ -61,6 +73,16 @@ describe('# custom views', function() {
         });
     });
 
+    it('should render custom two-factor view', function(done) {
+      request(_app)
+        .post('/login')
+        .send({login: 'buffy', password: 'password'})
+        .end(function(err, res) {
+          res.text.should.include('Nope, not yet!');
+          done();
+        });
+    });
+
   });
 
   describe('GET /logout', function() {
@@ -87,7 +109,9 @@ describe('# custom views', function() {
   });
 
   after(function(done) {
-    adapter.remove('alan', done);
+    adapter.remove('alan', function() {
+      adapter.remove('buffy', done);
+    });
   });
 
 });
