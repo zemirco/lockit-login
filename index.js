@@ -326,7 +326,7 @@ Login.prototype.postTwoFactor = function(req, res, next) {
   var that = this;
 
   var token = req.body.token || '';
-  var email = req.session.email;
+  var email = req.session.email || '';
 
   // get redirect url
   var target = req.query.redirect || '/';
@@ -335,7 +335,7 @@ Login.prototype.postTwoFactor = function(req, res, next) {
   adapter.find('email', email, function(err, user) {
     if (err) return next(err);
 
-    var key = user.twoFactorKey;
+    var key = user && user.twoFactorKey;
 
     // verify POSTed token
     var valid = utils.verify(token, key);
