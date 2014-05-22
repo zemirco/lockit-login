@@ -2,12 +2,13 @@
 var request = require('supertest');
 var should = require('should');
 var superagent = require('superagent');
-var utls = require('lockit-utils');
+var utils = require('lockit-utils');
+var totp = require('notp').totp;
 
 var config = require('./app/config.js');
 var app = require('./app/app.js');
 
-var db = utls.getDatabase(config);
+var db = utils.getDatabase(config);
 var adapter = require(db.adapter)(config);
 
 // create third app for testing REST
@@ -35,7 +36,19 @@ describe('# with REST enabled', function() {
                 user.emailVerified = true;
                 // save updated user to db
                 adapter.update(user, function(err, user) {
-                  done();
+                  // create another user for two factor auth
+                  adapter.save('three', 'three@email.com', 'password', function(err, user) {
+                    // verify email for three and activate two-factor
+                    adapter.find('name', 'three', function(err, user) {
+                      user.emailVerified = true;
+                      user.twoFactorEnabled = true;
+                      user.twoFactorKey = 'qwertz';
+                      // save updated user to db
+                      adapter.update(user, function(err, user) {
+                        done();
+                      });
+                    });
+                  });
                 });
               });
             });
@@ -197,23 +210,59 @@ describe('# with REST enabled', function() {
         });
     });
 
-    it.skip('should send a notice when two-factor auth is enabled', function(done) {
-
-    });
-
-    it.skip('should not allow login when two-factor auth is enabled', function(done) {
-
+    it('should send a notice when two-factor auth is enabled', function(done) {
+      request(_app)
+        .post('/rest/login')
+        .send({login: 'three', password: 'password'})
+        .end(function(err, res) {
+          res.text.should.equal('{"twoFactorEnabled":true}');
+          done();
+        });
     });
 
   });
 
   describe('POST /login/two-factor', function() {
 
-    it.skip('should send an error when token is invalid', function(done) {
-
+    it('should send an error when token is invalid', function(done) {
+      var agent = superagent.agent();
+      // login
+      agent
+        .post('http://localhost:5000/rest/login')
+        .send({login: 'three', password: 'password'})
+        .end(function(err, res) {
+          process.nextTick(function() {
+            // enter invalid token
+            agent
+              .post('http://localhost:5000/rest/login/two-factor')
+              .send({token: '123456'})
+              .end(function(err, res) {
+                res.statusCode.should.equal(401);
+                done();
+              });
+          });
+        });
     });
 
-    it.skip('should send a success message when token is valid', function(done) {
+    it('should send a success message when token is valid', function(done) {
+      var agent = superagent.agent();
+      // login
+      agent
+        .post('http://localhost:5000/rest/login')
+        .send({login: 'three', password: 'password'})
+        .end(function(err, res) {
+          process.nextTick(function() {
+            // enter valid token
+            var token = totp.gen('qwertz', {});
+            agent
+              .post('http://localhost:5000/rest/login/two-factor')
+              .send({token: token})
+              .end(function(err, res) {
+                res.statusCode.should.equal(204);
+                done();
+              });
+          });
+        });
     });
 
   });
@@ -244,7 +293,9 @@ describe('# with REST enabled', function() {
   after(function(done) {
     adapter.remove('beep', function() {
       adapter.remove('boat', function() {
-        adapter.remove('bopp', done);
+        adapter.remove('bopp', function() {
+          adapter.remove('three', done);
+        });
       });
     });
   });
