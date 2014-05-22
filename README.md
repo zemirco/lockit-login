@@ -44,12 +44,13 @@ More about configuration at [Lockit](https://github.com/zemirco/lockit).
 
 ## Features
 
- - track failed log in attempts
- - lock account after too many failed login attempts
- - track time and ip of log ins
- - redirect unauthorized users to /login and save requested url to session
- - input validation
- - allow login with username and/or email
+- two-factor authentication
+- track failed log in attempts
+- lock account after too many failed login attempts
+- track time and ip of log ins
+- redirect unauthorized users to /login and save requested url to session
+- input validation
+- allow login with username and/or email
 
 ## Routes included
 
@@ -65,6 +66,7 @@ If you've set `exports.rest` in your `config.js` the module behaves as follows.
  - all routes have `/rest` prepended
  - `GET /rest/login` is `next()`ed and you can catch `/login` on the client
  - `POST /rest/login` stays the same but sends JSON
+ - `POST /rest/login/two-factor` stays the same but sends JSON
  - `GET /rest/logout` sends JSON and you can catch `/logout` on the client
 
 ## Test
