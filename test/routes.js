@@ -14,6 +14,7 @@ var _config = JSON.parse(JSON.stringify(config));
 _config.port = 9000;
 _config.login.route ='/custom-login';
 _config.login.logoutRoute = '/custom-logout';
+_config.login.twoFactorRoute = '/three-factor';
 
 var _app = app(_config);
 
@@ -51,6 +52,21 @@ describe('# custom routes', function() {
         .end(function(err, res) {
           res.statusCode.should.equal(403);
           res.text.should.include('Invalid user or password');
+          done();
+        });
+    });
+
+  });
+
+  describe('POST /login/two-factor', function() {
+
+    it('should work with a custom login route', function(done) {
+      request(_app)
+        .post('/custom-login/three-factor')
+        .send({login: 'some', password: 'pass'})
+        .end(function(err, res) {
+          res.statusCode.should.equal(302);
+          res.header.location.should.include('/custom-login');
           done();
         });
     });
