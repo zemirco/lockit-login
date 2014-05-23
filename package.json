@@ -25,7 +25,6 @@
     "ms": "^0.6.2",
     "moment": "^2.6.0",
     "couch-pwd": "0.0.1",
-    "express": "^4.3.0",
     "lockit-utils": "^0.4.2"
   },
   "devDependencies": {
@@ -45,6 +44,8 @@
     "express-session": "^1.2.0",
     "notp": "^2.0.2",
     "supertest": "^0.13.0",
-    "lockit-couchdb-adapter": "^0.4.3"
+    "lockit-couchdb-adapter": "^0.4.3",
+    "express": "^4.3.0",
+    "jade": "^1.3.1"
   }
 }
