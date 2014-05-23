@@ -1,4 +1,8 @@
 
+##### 1.1.1 / 2014-05-23
+
+- update lockit-utils
+
 ##### 1.1.0 / 2014-05-22
 
 - add two-factor authentication
