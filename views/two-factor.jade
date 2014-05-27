@@ -1,14 +1,16 @@
 extend /layout
 
 block content
-  div.panel.panel-default
-    div.panel-heading Two-Factor Authentication
-    div.panel-body
-      form(action=action, method="POST")
-        input(type="hidden", name="_csrf", value=_csrf)
-        div.form-group
-          label(for="token") Token
-          input.form-control(type="text", id="token", name="token", placeholder="Google Authenticator Token")
-        if error
-          div.alert.alert-warning #{error}
-        input(type="submit", class="btn btn-primary", value="Submit")
+  div.row
+    div.col-md-4.col-md-offset-4.col-sm-6.col-sm-offset-3
+      div.panel.panel-default
+        div.panel-heading Two-Factor Authentication
+        div.panel-body
+          form(action=action, method="POST", autocomplete="off")
+            input(type="hidden", name="_csrf", value=_csrf)
+            div.form-group
+              label(for="token") Token
+              input.form-control(type="text", id="token", name="token", placeholder="Google Authenticator Token")
+            if error
+              div.alert.alert-warning #{error}
+            input(type="submit", class="btn btn-primary btn-block", value="Submit")
