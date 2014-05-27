@@ -1,4 +1,11 @@
 
+##### 1.1.2 / 2014-05-27
+
+- set `autocomplete="off"` in forms
+- use Bootstrap responsive classes
+- stop creating an extra test db for Travis
+- use Bootstrap CSS in test app
+
 ##### 1.1.1 / 2014-05-23
 
 - update lockit-utils
