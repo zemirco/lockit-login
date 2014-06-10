@@ -145,9 +145,28 @@ Login.prototype.postLogin = function(req, res, next) {
   adapter.find(query, login, function(err, user) {
     if (err) return next(err);
 
-    // no user or user email isn't verified yet -> render error message
-    if (!user || !user.emailVerified) {
+    // no user -> render error message
+    if (!user) {
       error = 'Invalid user or password';
+
+      // send only JSON when REST is active
+      if (config.rest) return res.json(403, {error: error});
+
+      // render view
+      res.status(403);
+      res.render(view, {
+        title: 'Login',
+        action: that.loginRoute + suffix,
+        error: error,
+        login: login,
+        basedir: req.app.get('views')
+      });
+      return;
+    }
+
+    // user email isn't verified yet -> render error message
+    if (!user.emailVerified) {
+      error = 'Email not verified.';
 
       // send only JSON when REST is active
       if (config.rest) return res.json(403, {error: error});
