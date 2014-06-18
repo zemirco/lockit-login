@@ -119,6 +119,7 @@ Login.prototype.postLogin = function(req, res, next) {
   // check for valid inputs
   if (!login || !password) {
     error = 'Please enter your email/username and password';
+    login = login.toLowerCase();
 
     // send only JSON when REST is active
     if (config.rest) return res.json(403, {error: error});
@@ -345,7 +346,7 @@ Login.prototype.postTwoFactor = function(req, res, next) {
   var that = this;
 
   var token = req.body.token || '';
-  var email = req.session.email || '';
+  var email = req.session.email.toLowerCase() || '';
 
   // get redirect url
   var target = req.query.redirect || '/';
