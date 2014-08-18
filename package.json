@@ -23,9 +23,9 @@
   ],
   "dependencies": {
     "ms": "^0.6.2",
-    "moment": "^2.6.0",
+    "moment": "^2.8.1",
     "couch-pwd": "0.0.1",
-    "lockit-utils": "^0.4.2"
+    "lockit-utils": "^0.5.1"
   },
   "devDependencies": {
     "grunt": "^0.4.2",
