@@ -77,7 +77,7 @@ Login.prototype.getLogin = function(req, res, next) {
   if (config.rest) return next();
 
   // save redirect url
-  var suffix = req.query.redirect ? '?redirect=' + req.query.redirect : '';
+  var suffix = req.query.redirect ? '?redirect=' + encodeURIComponent(req.query.redirect) : '';
 
   // custom or built-in view
   var view = config.login.views.login || join('get-login');
@@ -111,7 +111,7 @@ Login.prototype.postLogin = function(req, res, next) {
   var password = req.body.password;
 
   // save redirect url
-  var suffix = req.query.redirect ? '?redirect=' + req.query.redirect : '';
+  var suffix = req.query.redirect ? '?redirect=' + encodeURIComponent(req.query.redirect) : '';
 
   // custom or built-in view
   var view = config.login.views.login || join('get-login');
