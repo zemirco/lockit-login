@@ -49,8 +49,8 @@ describe('# default config', function() {
         .get('/login')
         .end(function(err, res) {
           res.statusCode.should.equal(200);
-          res.text.should.include('Email or Username');
-          res.text.should.include('<title>Login</title>');
+          res.text.should.containEql('Email or Username');
+          res.text.should.containEql('<title>Login</title>');
           done();
         });
     });
@@ -70,7 +70,7 @@ describe('# default config', function() {
     it('should render an error message when login field is invalid', function(done) {
       postLogin('', 'secret', function(err, res) {
         res.statusCode.should.equal(403);
-        res.text.should.include('Please enter your email/username and password');
+        res.text.should.containEql('Please enter your email/username and password');
         done();
       });
     });
@@ -78,7 +78,7 @@ describe('# default config', function() {
     it('should render an error message when password field is empty', function(done) {
       postLogin('john', '', function(err, res) {
         res.statusCode.should.equal(403);
-        res.text.should.include('Please enter your email/username and password');
+        res.text.should.containEql('Please enter your email/username and password');
         done();
       });
     });
@@ -86,7 +86,7 @@ describe('# default config', function() {
     it('should render an error message when email is not verified', function(done) {
       postLogin('john', 'password', function(err, res) {
         res.statusCode.should.equal(403);
-        res.text.should.include('Invalid user or password');
+        res.text.should.containEql('Invalid user or password');
         done();
       });
     });
@@ -94,7 +94,7 @@ describe('# default config', function() {
     it('should render an error message when user is not in db', function(done) {
       postLogin('jack', 'password', function(err, res) {
         res.statusCode.should.equal(403);
-        res.text.should.include('Invalid user or password');
+        res.text.should.containEql('Invalid user or password');
         done();
       });
     });
@@ -102,7 +102,7 @@ describe('# default config', function() {
     it('should render an error message when password is false', function(done) {
       postLogin('john', 'something', function(err, res) {
         res.statusCode.should.equal(403);
-        res.text.should.include('Invalid user or password');
+        res.text.should.containEql('Invalid user or password');
         done();
       });
     });
@@ -113,7 +113,7 @@ describe('# default config', function() {
         postLogin('steve', 'wrong', function(err, res) {
           postLogin('steve', 'wrong', function(err, res) {
             res.statusCode.should.equal(403);
-            res.text.should.include('Invalid user or password. Your account will be locked soon.');
+            res.text.should.containEql('Invalid user or password. Your account will be locked soon.');
             done();
           });
         });
@@ -125,7 +125,7 @@ describe('# default config', function() {
       postLogin('steve', 'wrong', function(err, res) {
         postLogin('steve', 'wrong', function(err, res) {
           res.statusCode.should.equal(403);
-          res.text.should.include('Invalid user or password. Your account is now locked for ' + config.accountLockedTime);
+          res.text.should.containEql('Invalid user or password. Your account is now locked for ' + config.accountLockedTime);
           done();
         });
       });
@@ -134,7 +134,7 @@ describe('# default config', function() {
     it('should not allow login with a locked user account', function(done) {
       postLogin('steve', 'wrong', function(err, res) {
         res.statusCode.should.equal(403);
-        res.text.should.include('The account is temporarily locked');
+        res.text.should.containEql('The account is temporarily locked');
         done();
       });
     });
@@ -144,7 +144,7 @@ describe('# default config', function() {
       setTimeout(function() {
         postLogin('steve', 'wrong', function(err, res) {
           res.statusCode.should.equal(403);
-          res.text.should.include('Invalid user or password');
+          res.text.should.containEql('Invalid user or password');
           done();
         });
       }, 2000);
@@ -161,7 +161,7 @@ describe('# default config', function() {
           postLogin('john', 'password', function(err, res) {
             // test for proper redirection
             res.statusCode.should.equal(302);
-            res.header.location.should.include('/');
+            res.header.location.should.containEql('/');
             done();
           });
         });
@@ -174,7 +174,7 @@ describe('# default config', function() {
       postLogin('john@email.com', 'password', function(err, res) {
         // test for proper redirection
         res.statusCode.should.equal(302);
-        res.header.location.should.include('/');
+        res.header.location.should.containEql('/');
         done();
       });
     });
@@ -183,7 +183,7 @@ describe('# default config', function() {
       postLogin('john', 'password', function(err, res) {
         // test for proper redirection
         res.statusCode.should.equal(302);
-        res.header.location.should.include('/');
+        res.header.location.should.containEql('/');
         done();
       });
     });
@@ -194,7 +194,7 @@ describe('# default config', function() {
         .send({login: 'john', password: 'password'})
         .end(function(err, res) {
           res.statusCode.should.equal(302);
-          res.header.location.should.include('/test');
+          res.header.location.should.containEql('/test');
           done();
         });
     });
@@ -205,7 +205,7 @@ describe('# default config', function() {
         .post(config.url + '/login')
         .send({login: 'tf', password: 'twofactor'})
         .end(function(err, res) {
-          res.text.should.include('Two-Factor Authentication');
+          res.text.should.containEql('Two-Factor Authentication');
           done();
         });
     });
@@ -239,7 +239,7 @@ describe('# default config', function() {
         .post(config.url + '/login')
         .send({login: 'tf', password: 'twofactor'})
         .end(function(err, res) {
-          res.text.should.include('Two-Factor Authentication');
+          res.text.should.containEql('Two-Factor Authentication');
           agent.saveCookies(res);
           // enter invalid token
           agent
@@ -264,7 +264,7 @@ describe('# default config', function() {
             .post(config.url + '/login')
             .send({login: 'tf', password: 'twofactor'})
             .end(function(err, res) {
-              res.text.should.include('Two-Factor Authentication');
+              res.text.should.containEql('Two-Factor Authentication');
               agent.saveCookies(res);
               var token = totp.gen(key, {});
               // use two-factor authentication
@@ -278,7 +278,7 @@ describe('# default config', function() {
                     .get(config.url + '/test')
                     .end(function(err, res) {
                       res.statusCode.should.equal(200);
-                      res.text.should.include('well done');
+                      res.text.should.containEql('well done');
                       done();
                     });
                 });
@@ -309,7 +309,7 @@ describe('# default config', function() {
         .get(config.url + '/test')
         .end(function(err, res) {
           res.statusCode.should.equal(200);
-          res.text.should.include('well done');
+          res.text.should.containEql('well done');
           done();
         });
     });
@@ -319,7 +319,7 @@ describe('# default config', function() {
         .get(config.url + '/logout')
         .end(function(err, res) {
           res.statusCode.should.equal(200);
-          res.text.should.include('You\'ve successfully logged out.');
+          res.text.should.containEql('You\'ve successfully logged out.');
           done();
         });
     });

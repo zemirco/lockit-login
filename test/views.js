@@ -54,7 +54,7 @@ describe('# custom views', function() {
       request(_app)
         .get('/login')
         .end(function(err, res) {
-          res.text.should.include('Join the community');
+          res.text.should.containEql('Join the community');
           done();
         });
     });
@@ -68,7 +68,7 @@ describe('# custom views', function() {
         .post('/login')
         .send({login: '', password: 'scret'})
         .end(function(err, res) {
-          res.text.should.include('Join the community');
+          res.text.should.containEql('Join the community');
           done();
         });
     });
@@ -78,7 +78,7 @@ describe('# custom views', function() {
         .post('/login')
         .send({login: 'buffy', password: 'password'})
         .end(function(err, res) {
-          res.text.should.include('Nope, not yet!');
+          res.text.should.containEql('Nope, not yet!');
           done();
         });
     });
@@ -100,7 +100,7 @@ describe('# custom views', function() {
             .get('http://localhost:4000/logout')
             .end(function(err, res) {
               if (err) console.log(err);
-              res.text.should.include('You did it!');
+              res.text.should.containEql('You did it!');
               done();
             });
         });

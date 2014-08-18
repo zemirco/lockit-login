@@ -135,7 +135,7 @@ describe('# event listeners', function() {
         .post('http://localhost:6501/login')
         .send({login: 'event', password: 'password'})
         .end(function(err, res) {
-          res.text.should.include('awesome');
+          res.text.should.containEql('awesome');
           done();
         });
     });
@@ -152,7 +152,7 @@ describe('# event listeners', function() {
       agent
         .get('http://localhost:6501/logout')
         .end(function(err, res) {
-          res.text.should.include('get out of here!');
+          res.text.should.containEql('get out of here!');
           done();
         });
     });

@@ -51,7 +51,7 @@ describe('# session store', function() {
         .get(_config.url + '/test')
         .end(function(err, res) {
           res.statusCode.should.equal(200);
-          res.text.should.include('well done');
+          res.text.should.containEql('well done');
           done();
         });
     });
@@ -61,7 +61,7 @@ describe('# session store', function() {
         .get(_config.url + '/logout')
         .end(function(err, res) {
           res.statusCode.should.equal(200);
-          res.text.should.include('You\'ve successfully logged out.');
+          res.text.should.containEql('You\'ve successfully logged out.');
           done();
         });
     });

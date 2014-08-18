@@ -36,7 +36,7 @@ describe('# custom routes', function() {
         .get('/custom-login')
         .end(function(err, res) {
           res.statusCode.should.equal(200);
-          res.text.should.include('Email or Username');
+          res.text.should.containEql('Email or Username');
           done();
         });
     });
@@ -51,7 +51,7 @@ describe('# custom routes', function() {
         .send({login: 'some', password: 'pass'})
         .end(function(err, res) {
           res.statusCode.should.equal(403);
-          res.text.should.include('Invalid user or password');
+          res.text.should.containEql('Invalid user or password');
           done();
         });
     });
@@ -66,7 +66,7 @@ describe('# custom routes', function() {
         .send({login: 'some', password: 'pass'})
         .end(function(err, res) {
           res.statusCode.should.equal(302);
-          res.header.location.should.include('/custom-login');
+          res.header.location.should.containEql('/custom-login');
           done();
         });
     });
@@ -86,7 +86,7 @@ describe('# custom routes', function() {
             .get('http://localhost:9000/custom-logout')
             .end(function(err, res) {
               res.statusCode.should.equal(200);
-              res.text.should.include('You\'ve successfully logged out.');
+              res.text.should.containEql('You\'ve successfully logged out.');
               done();
             });
         });

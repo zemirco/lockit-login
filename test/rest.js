@@ -64,7 +64,7 @@ describe('# with REST enabled', function() {
       request(_app)
         .get('/rest/login')
         .end(function(err, res) {
-          res.text.should.include('Cannot GET /rest/login');
+          res.text.should.containEql('Cannot GET /rest/login');
           done();
         });
     });
