@@ -67,7 +67,9 @@ function start(config) {
   var adapter = require(db.adapter)(config);
   var login = new Login(config, adapter);
 
-
+  // expose login and adapter for testing
+  app._login = login;
+  app._adapter = adapter;
 
   app.use(login.router);
 
