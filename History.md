@@ -1,4 +1,9 @@
 
+##### 1.1.3 / 2014-08-18
+
+- escape query parameters for redirect
+- update dependencies
+
 ##### 1.1.2 / 2014-05-27
 
 - set `autocomplete="off"` in forms
