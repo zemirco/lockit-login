@@ -147,7 +147,12 @@ Login.prototype.postLogin = function(req, res, next) {
 
     // no user or user email isn't verified yet -> render error message
     if (!user || !user.emailVerified) {
-      error = 'Invalid user or password';
+      if (!user.emailVerified) {
+        error = 'User not yet verified';
+      }
+      else {
+        error = 'Invalid user or password';
+      }
 
       // send only JSON when REST is active
       if (config.rest) return res.json(403, {error: error});
