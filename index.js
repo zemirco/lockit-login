@@ -1,3 +1,4 @@
+'use strict';
 
 var path = require('path');
 var events = require('events');
@@ -27,7 +28,7 @@ function join(view) {
  */
 var Login = module.exports = function(config, adapter) {
 
-  if (!(this instanceof Login)) return new Login(config, adapter);
+  if (!(this instanceof Login)) {return new Login(config, adapter); }
 
   // call super constructor function
   events.EventEmitter.call(this);
@@ -48,7 +49,7 @@ var Login = module.exports = function(config, adapter) {
   // two-factor authentication route
   this.twoFactorRoute = this.loginRoute + (config.login.twoFactorRoute || '/two-factor');
 
-  var router = express.Router();
+  var router = new express.Router();
   router.get(this.loginRoute, this.getLogin.bind(this));
   router.post(this.loginRoute, this.postLogin.bind(this));
   router.post(this.twoFactorRoute, this.postTwoFactor.bind(this));
@@ -74,7 +75,7 @@ Login.prototype.getLogin = function(req, res, next) {
   var that = this;
 
   // do not handle the route when REST is active
-  if (config.rest) return next();
+  if (config.rest) {return next(); }
 
   // save redirect url
   var suffix = req.query.redirect ? '?redirect=' + encodeURIComponent(req.query.redirect) : '';
@@ -121,18 +122,17 @@ Login.prototype.postLogin = function(req, res, next) {
     error = 'Please enter your email/username and password';
 
     // send only JSON when REST is active
-    if (config.rest) return res.json(403, {error: error});
+    if (config.rest) {return res.json(403, {error: error}); }
 
     // render view
     res.status(403);
-    res.render(view, {
+    return res.render(view, {
       title: 'Login',
       action: that.loginRoute + suffix,
       error: error,
       login: login,
       basedir: req.app.get('views')
     });
-    return;
   }
 
   // check if login is a name or an email address
@@ -143,25 +143,24 @@ Login.prototype.postLogin = function(req, res, next) {
 
   // find user in db
   adapter.find(query, login, function(err, user) {
-    if (err) return next(err);
+    if (err) {return next(err); }
 
     // no user or user email isn't verified yet -> render error message
     if (!user || !user.emailVerified) {
       error = 'Invalid user or password';
 
       // send only JSON when REST is active
-      if (config.rest) return res.json(403, {error: error});
+      if (config.rest) {return res.json(403, {error: error}); }
 
       // render view
       res.status(403);
-      res.render(view, {
+      return res.render(view, {
         title: 'Login',
         action: that.loginRoute + suffix,
         error: error,
         login: login,
         basedir: req.app.get('views')
       });
-      return;
     }
 
     // check for too many failed login attempts
@@ -169,26 +168,25 @@ Login.prototype.postLogin = function(req, res, next) {
       error = 'The account is temporarily locked';
 
       // send only JSON when REST is active
-      if (config.rest) return res.json(403, {error: error});
+      if (config.rest) {return res.json(403, {error: error}); }
 
       // render view
       res.status(403);
-      res.render(view, {
+      return res.render(view, {
         title: 'Login',
         action: that.loginRoute + suffix,
         error: error,
         login: login,
         basedir: req.app.get('views')
       });
-      return;
     }
 
     // if user comes from couchdb it has an 'iterations' key
-    if (user.iterations) pwd.iterations(user.iterations);
+    if (user.iterations) {pwd.iterations(user.iterations); }
 
     // compare credentials with data in db
-    pwd.hash(password, user.salt, function(err, hash) {
-      if (err) return next(err);
+    pwd.hash(password, user.salt, function(hashErr, hash) {
+      if (hashErr) {return next(hashErr); }
 
       if (hash !== user.derived_key) {
         // set the default error message
@@ -212,11 +210,11 @@ Login.prototype.postLogin = function(req, res, next) {
         }
 
         // save user to db
-        adapter.update(user, function(err, user) {
-          if (err) return next(err);
+        return adapter.update(user, function(updateErr) {
+          if (updateErr) {return next(updateErr); }
 
           // send only JSON when REST is active
-          if (config.rest) return res.json(403, {error: errorMessage});
+          if (config.rest) {return res.json(403, {error: errorMessage}); }
 
           // send error message
           res.status(403);
@@ -228,8 +226,6 @@ Login.prototype.postLogin = function(req, res, next) {
             basedir: req.app.get('views')
           });
         });
-
-        return;
 
       }
 
@@ -252,15 +248,15 @@ Login.prototype.postLogin = function(req, res, next) {
       user.accountLocked = false;
 
       // save user to db
-      adapter.update(user, function(err, user) {
-        if (err) return next(err);
+      adapter.update(user, function(updateErr, updatedUser) {
+        if (updateErr) {return next(updateErr); }
 
         // create session and save the name and email address
-        req.session.name = user.name;
-        req.session.email = user.email;
+        req.session.name = updatedUser.name;
+        req.session.email = updatedUser.email;
 
         // check if two-factor authentication is enabled
-        if (!user.twoFactorEnabled) {
+        if (!updatedUser.twoFactorEnabled) {
 
           // get redirect url
           var target = req.query.redirect || '/';
@@ -269,31 +265,32 @@ Login.prototype.postLogin = function(req, res, next) {
           req.session.loggedIn = true;
 
           // emit 'login' event
-          that.emit('login', user, res, target);
+          that.emit('login', updatedUser, res, target);
 
           // let lockit handle the response
           if (config.login.handleResponse) {
             // send only JSON when REST is active
-            if (config.rest) return res.send(204);
+            if (config.rest) {return res.send(204); }
 
             // redirect to target url
-            res.redirect(target);
+            return res.redirect(target);
           }
-          return;
         }
 
         // two-factor authentication is enabled
 
         // send only JSON when REST is active
-        if (config.rest) return res.json({
-          twoFactorEnabled: true
-        });
+        if (config.rest) {
+          return res.json({
+            twoFactorEnabled: true
+          });
+        }
 
         // custom or built-in view
-        var view = config.login.views.twoFactor || join('two-factor');
+        var twoFactorView = config.login.views.twoFactor || join('two-factor');
 
         // render two-factor authentication template
-        res.render(view, {
+        res.render(twoFactorView, {
           title: 'Two-factor authentication',
           action: that.twoFactorRoute,
           basedir: req.app.get('views')
@@ -333,7 +330,7 @@ Login.prototype.postTwoFactor = function(req, res, next) {
 
   // get user from db
   adapter.find('email', email, function(err, user) {
-    if (err) return next(err);
+    if (err) {return next(err); }
 
     var key = user && user.twoFactorKey;
 
@@ -345,7 +342,7 @@ Login.prototype.postTwoFactor = function(req, res, next) {
       // destroy current session
       return utils.destroy(req, function() {
         // send only JSON when REST is active
-        if (config.rest) return res.send(401);
+        if (config.rest) {return res.send(401); }
         res.redirect(loginRoute + '?redirect=' + target);
       });
     }
@@ -361,7 +358,7 @@ Login.prototype.postTwoFactor = function(req, res, next) {
     // let lockit handle the response
     if (config.login.handleResponse) {
       // send only JSON when REST is active
-      if (config.rest) return res.send(204);
+      if (config.rest) {return res.send(204); }
 
       // redirect to target url
       res.redirect(target);
@@ -380,7 +377,7 @@ Login.prototype.postTwoFactor = function(req, res, next) {
  * @param {Object} res
  * @param {Function} next
  */
-Login.prototype.getLogout = function(req, res, next) {
+Login.prototype.getLogout = function(req, res) {
 
   var config = this.config;
   var that = this;
@@ -404,7 +401,7 @@ Login.prototype.getLogout = function(req, res, next) {
     if (config.login.handleResponse) {
 
       // send JSON when REST is active
-      if (config.rest) return res.send(204);
+      if (config.rest) {return res.send(204); }
 
       // custom or built-in view
       var view = config.login.views.loggedOut || join('get-logout');
