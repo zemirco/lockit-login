@@ -4,17 +4,17 @@
   "description": "login and logout module for lockit",
   "main": "index.js",
   "scripts": {
-    "test": "grunt"
+    "test": "make test"
   },
   "author": {
     "name": "Mirco Zeiss",
     "email": "mirco.zeiss@gmail.com",
-    "twitter": "zeMirco"
+    "twitter": "zemirco"
   },
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/zeMirco/lockit-login"
+    "url": "https://github.com/zemirco/lockit-login"
   },
   "keywords": [
     "lockit",
@@ -28,9 +28,6 @@
     "lockit-utils": "^0.5.1"
   },
   "devDependencies": {
-    "grunt": "^0.4.2",
-    "grunt-contrib-jshint": "^0.10.0",
-    "grunt-mocha-test": "^0.11.0",
     "nano": "^5.10.0",
     "superagent": "^0.18.2",
     "cookie": "^0.1.0",

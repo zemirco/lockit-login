@@ -73,7 +73,7 @@ If you've set `exports.rest` in your `config.js` the module behaves as follows.
 
 ## Test
 
-`grunt`
+`make test`
 
 ## License
 
