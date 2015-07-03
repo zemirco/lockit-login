@@ -1,4 +1,10 @@
 
+##### 1.1.4 / 2015-07-03
+
+- update dependencies
+- use eslint
+- use make instead grunt
+
 ##### 1.1.3 / 2014-08-18
 
 - escape query parameters for redirect
