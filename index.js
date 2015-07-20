@@ -275,6 +275,7 @@ Login.prototype.postLogin = function(req, res, next) {
             // redirect to target url
             return res.redirect(target);
           }
+          return;
         }
 
         // two-factor authentication is enabled
