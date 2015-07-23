@@ -126,13 +126,14 @@ Login.prototype.postLogin = function(req, res, next) {
 
     // render view
     res.status(403);
-    return res.render(view, {
+    res.render(view, {
       title: 'Login',
       action: that.loginRoute + suffix,
       error: error,
       login: login,
       basedir: req.app.get('views')
     });
+    return;
   }
 
   // check if login is a name or an email address
@@ -154,13 +155,14 @@ Login.prototype.postLogin = function(req, res, next) {
 
       // render view
       res.status(403);
-      return res.render(view, {
+      res.render(view, {
         title: 'Login',
         action: that.loginRoute + suffix,
         error: error,
         login: login,
         basedir: req.app.get('views')
       });
+      return;
     }
 
     // check for too many failed login attempts
@@ -172,13 +174,14 @@ Login.prototype.postLogin = function(req, res, next) {
 
       // render view
       res.status(403);
-      return res.render(view, {
+      res.render(view, {
         title: 'Login',
         action: that.loginRoute + suffix,
         error: error,
         login: login,
         basedir: req.app.get('views')
       });
+      return;
     }
 
     // if user comes from couchdb it has an 'iterations' key
@@ -210,7 +213,7 @@ Login.prototype.postLogin = function(req, res, next) {
         }
 
         // save user to db
-        return adapter.update(user, function(updateErr) {
+        adapter.update(user, function(updateErr) {
           if (updateErr) {return next(updateErr); }
 
           // send only JSON when REST is active
@@ -226,6 +229,8 @@ Login.prototype.postLogin = function(req, res, next) {
             basedir: req.app.get('views')
           });
         });
+
+        return;
 
       }
 
@@ -273,8 +278,9 @@ Login.prototype.postLogin = function(req, res, next) {
             if (config.rest) {return res.send(204); }
 
             // redirect to target url
-            return res.redirect(target);
+            res.redirect(target);
           }
+          return;
         }
 
         // two-factor authentication is enabled

@@ -1,4 +1,9 @@
 
+##### 1.1.6 / 2015-07-23
+
+- add eslint
+- fix #8
+
 ##### 1.1.5 / 2015-07-06
 
 - update dependencies

@@ -34,6 +34,7 @@
     "cookie-session": "^1.0.1",
     "csurf": "^1.4.0",
     "errorhandler": "^1.4.1",
+    "eslint": "^0.24.1",
     "express": "^4.13.1",
     "express-session": "^1.7.5",
     "jade": "^1.5.0",

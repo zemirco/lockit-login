@@ -1,0 +1,33 @@
+0 info it worked if it ends with ok
+1 verbose cli [ '/usr/bin/node', '/usr/bin/npm', 'version', 'patch' ]
+2 info using npm@2.11.3
+3 info using node@v0.12.7
+4 verbose node symlink /usr/bin/node
+5 info preversion lockit-login@1.1.6
+6 info git [ 'status', '--porcelain' ]
+7 verbose stack Error: Error: Git working directory not clean.
+7 verbose stack M .eslintrc
+7 verbose stack M History.md
+7 verbose stack M index.js
+7 verbose stack M package.json
+7 verbose stack     at /usr/lib/node_modules/npm/lib/version.js:71:23
+7 verbose stack     at /usr/lib/node_modules/npm/lib/version.js:151:34
+7 verbose stack     at ChildProcess.exithandler (child_process.js:742:7)
+7 verbose stack     at ChildProcess.emit (events.js:110:17)
+7 verbose stack     at maybeClose (child_process.js:1015:16)
+7 verbose stack     at Socket.<anonymous> (child_process.js:1183:11)
+7 verbose stack     at Socket.emit (events.js:107:17)
+7 verbose stack     at Pipe.close (net.js:485:12)
+8 verbose cwd /home/zeiss/dev/js/lockit/lockit-login
+9 error Linux 3.13.0-52-generic
+10 error argv "/usr/bin/node" "/usr/bin/npm" "version" "patch"
+11 error node v0.12.7
+12 error npm  v2.11.3
+13 error Error: Git working directory not clean.
+13 error M .eslintrc
+13 error M History.md
+13 error M index.js
+13 error M package.json
+14 error If you need help, you may report this error at:
+14 error     <https://github.com/npm/npm/issues>
+15 verbose exit [ 1, true ]

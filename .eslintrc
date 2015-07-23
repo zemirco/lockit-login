@@ -5,3 +5,4 @@ env:
 
 rules:
   quotes: [2, "single"]
+  consistent-return: 0
