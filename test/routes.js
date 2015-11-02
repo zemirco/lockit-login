@@ -73,7 +73,7 @@ describe('# custom routes', function() {
 
   });
 
-  describe('GET /logout', function() {
+  describe('POST /logout', function() {
 
     var agent = superagent.agent();
 
@@ -83,7 +83,7 @@ describe('# custom routes', function() {
         .send({login:'routes', password:'password'})
         .end(function() {
           agent
-            .get('http://localhost:9000/custom-logout')
+            .post('http://localhost:9000/custom-logout')
             .end(function(err, res) {
               res.statusCode.should.equal(200);
               res.text.should.containEql('You\'ve successfully logged out.');

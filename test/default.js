@@ -289,7 +289,7 @@ describe('# default config', function() {
 
   });
 
-  describe('GET /logout', function() {
+  describe('POST /logout', function() {
 
     var agent = superagent.agent();
 
@@ -316,7 +316,7 @@ describe('# default config', function() {
 
     it('should render a success message and destroy the session', function(done) {
       agent
-        .get(config.url + '/logout')
+        .post(config.url + '/logout')
         .end(function(err, res) {
           res.statusCode.should.equal(200);
           res.text.should.containEql('You\'ve successfully logged out.');
