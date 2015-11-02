@@ -53,7 +53,7 @@ var Login = module.exports = function(config, adapter) {
   router.get(this.loginRoute, this.getLogin.bind(this));
   router.post(this.loginRoute, this.postLogin.bind(this));
   router.post(this.twoFactorRoute, this.postTwoFactor.bind(this));
-  router.get(logoutRoute, utils.restrict(config), this.getLogout.bind(this));
+  router.post(logoutRoute, utils.restrict(config), this.getLogout.bind(this));
   this.router = router;
 
 };
