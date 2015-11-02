@@ -59,7 +59,7 @@ More about configuration at [Lockit](https://github.com/zemirco/lockit).
  - GET /login
  - POST /login
  - POST /login/two-factor
- - GET /logout
+ - POST /logout
 
 ## REST API
 
@@ -69,7 +69,7 @@ If you've set `exports.rest` in your `config.js` the module behaves as follows.
  - `GET /rest/login` is `next()`ed and you can catch `/login` on the client
  - `POST /rest/login` stays the same but sends JSON
  - `POST /rest/login/two-factor` stays the same but sends JSON
- - `GET /rest/logout` sends JSON and you can catch `/logout` on the client
+ - `POST /rest/logout` sends JSON and you can catch `/logout` on the client
 
 ## Test
 
