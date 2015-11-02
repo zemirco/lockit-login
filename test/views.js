@@ -85,7 +85,7 @@ describe('# custom views', function() {
 
   });
 
-  describe('GET /logout', function() {
+  describe('POST /logout', function() {
 
     var agent = superagent.agent();
 
@@ -97,7 +97,7 @@ describe('# custom views', function() {
         .end(function(err, res) {
           // then logout
           agent
-            .get('http://localhost:4000/logout')
+            .post('http://localhost:4000/logout')
             .end(function(err, res) {
               if (err) console.log(err);
               res.text.should.containEql('You did it!');

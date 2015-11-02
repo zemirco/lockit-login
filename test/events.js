@@ -107,7 +107,7 @@ describe('# event listeners', function() {
 
   });
 
-  describe('GET /logout', function() {
+  describe('POST /logout', function() {
 
     it('should emit a "logout" event on success', function(done) {
       _app._login.removeAllListeners();
@@ -117,7 +117,7 @@ describe('# event listeners', function() {
         done();
       });
       agent
-        .get('http://localhost:6500/logout')
+        .post('http://localhost:6500/logout')
         .end(function(err, res) {
           res.statusCode.should.equal(200);
         });
@@ -142,7 +142,7 @@ describe('# event listeners', function() {
 
   });
 
-  describe('GET /logout (handleResponse = false)', function() {
+  describe('POST /logout (handleResponse = false)', function() {
 
     it('should allow manual response handling', function(done) {
       _app_two._login.removeAllListeners();
@@ -150,7 +150,7 @@ describe('# event listeners', function() {
         res.send('get out of here!');
       });
       agent
-        .get('http://localhost:6501/logout')
+        .post('http://localhost:6501/logout')
         .end(function(err, res) {
           res.text.should.containEql('get out of here!');
           done();

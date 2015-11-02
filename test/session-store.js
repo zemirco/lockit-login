@@ -31,7 +31,7 @@ describe('# session store', function() {
     });
   });
 
-  describe('GET /logout', function() {
+  describe('POST /logout', function() {
 
     var agent = superagent.agent();
 
@@ -58,7 +58,7 @@ describe('# session store', function() {
 
     it('should render a success message and destroy the session', function(done) {
       agent
-        .get(_config.url + '/logout')
+        .post(_config.url + '/logout')
         .end(function(err, res) {
           res.statusCode.should.equal(200);
           res.text.should.containEql('You\'ve successfully logged out.');

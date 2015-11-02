@@ -53,7 +53,7 @@ var Login = module.exports = function(config, adapter) {
   router.get(this.loginRoute, this.getLogin.bind(this));
   router.post(this.loginRoute, this.postLogin.bind(this));
   router.post(this.twoFactorRoute, this.postTwoFactor.bind(this));
-  router.get(logoutRoute, utils.restrict(config), this.getLogout.bind(this));
+  router.post(logoutRoute, utils.restrict(config), this.postLogout.bind(this));
   this.router = router;
 
 };
@@ -377,13 +377,13 @@ Login.prototype.postTwoFactor = function(req, res, next) {
 
 
 /**
- * GET /logout route handling function.
+ * POST /logout route handling function.
  *
  * @param {Object} req
  * @param {Object} res
  * @param {Function} next
  */
-Login.prototype.getLogout = function(req, res) {
+Login.prototype.postLogout = function(req, res) {
 
   var config = this.config;
   var that = this;

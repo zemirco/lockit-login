@@ -267,7 +267,7 @@ describe('# with REST enabled', function() {
 
   });
 
-  describe('GET /logout', function() {
+  describe('POST /logout', function() {
 
     var agent = superagent.agent();
 
@@ -279,7 +279,7 @@ describe('# with REST enabled', function() {
         .end(function(err, res) {
           // then logout
           agent
-            .get('http://localhost:5000/rest/logout')
+            .post('http://localhost:5000/rest/logout')
             .end(function(err, res) {
               res.statusCode.should.equal(204);
               done();
