@@ -22,7 +22,7 @@
     "logout"
   ],
   "dependencies": {
-    "couch-pwd": "0.0.1",
+    "couch-pwd": "^0.0.1",
     "lockit-utils": "^0.5.1",
     "moment": "^2.8.1",
     "ms": "^0.7.1"
